@@ -13,12 +13,19 @@ export const tradingStrategies = pgTable("trading_strategies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  type: text("type").notNull(), // 'ma-crossover', 'rsi', 'macd', 'bollinger'
+  type: text("type").notNull(), // 'ma-crossover', 'rsi', 'macd', 'bollinger', 'grid-trading'
   isActive: boolean("is_active").notNull().default(false),
   riskTolerance: integer("risk_tolerance").notNull().default(50), // 0-100
   tradeSize: integer("trade_size").notNull().default(25), // percentage
   stopLoss: decimal("stop_loss", { precision: 5, scale: 2 }).notNull().default("2.5"),
   takeProfit: decimal("take_profit", { precision: 5, scale: 2 }).notNull().default("5.0"),
+  // Grid trading specific fields
+  gridInterval: decimal("grid_interval", { precision: 12, scale: 2 }).default("2000"), // Price drop for buy orders ($2000)
+  gridProfitPercent: decimal("grid_profit_percent", { precision: 5, scale: 2 }).default("5.0"), // Profit % for sell orders (5%)
+  strategyState: jsonb("strategy_state").$type<{
+    initialPrice?: number;
+    gridOrders?: Array<{ buyPrice: number; sellPrice: number; btcAmount: number; filled: boolean }>;
+  }>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
