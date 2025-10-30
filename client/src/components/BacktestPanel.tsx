@@ -79,6 +79,7 @@ export function BacktestPanel() {
   });
 
   const strategies = [
+    { value: 'grid-trading', label: 'Grid Trading (Auto Buy Dips)' },
     { value: 'ma-crossover', label: 'Moving Average Crossover' },
     { value: 'rsi', label: 'RSI Based Trading' },
     { value: 'macd', label: 'MACD Strategy' },

@@ -24,15 +24,27 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
   const [stopLoss, setStopLoss] = useState('2.5');
   const [takeProfit, setTakeProfit] = useState('5.0');
   const [tradeSize, setTradeSize] = useState([25]);
+  
+  // Grid trading specific fields
+  const [gridInterval, setGridInterval] = useState('2000');
+  const [gridProfitPercent, setGridProfitPercent] = useState('5.0');
 
   const handleSave = () => {
-    const config = {
-      strategy,
+    const config: any = {
+      name: strategy === 'grid-trading' ? 'Grid Trading Bot' : 'Trading Bot',
+      type: strategy,
       riskTolerance: riskTolerance[0],
       stopLoss: parseFloat(stopLoss),
       takeProfit: parseFloat(takeProfit),
       tradeSize: tradeSize[0]
     };
+    
+    // Add grid trading specific fields
+    if (strategy === 'grid-trading') {
+      config.gridInterval = parseFloat(gridInterval);
+      config.gridProfitPercent = parseFloat(gridProfitPercent);
+    }
+    
     console.log('Saving strategy config:', config);
     onSave(config);
   };
@@ -53,6 +65,7 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="grid-trading">Grid Trading (Auto Buy Dips)</SelectItem>
                   <SelectItem value="ma-crossover">Moving Average Crossover</SelectItem>
                   <SelectItem value="rsi">RSI Based Trading</SelectItem>
                   <SelectItem value="macd">MACD Strategy</SelectItem>
@@ -91,35 +104,81 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
           </div>
 
           <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="stop-loss">Stop Loss (%)</Label>
-              <Input
-                id="stop-loss"
-                type="number"
-                value={stopLoss}
-                onChange={(e) => setStopLoss(e.target.value)}
-                placeholder="2.5"
-                data-testid="input-stop-loss"
-              />
-              <p className="text-xs text-muted-foreground">
-                Automatically sell if price drops by this %
-              </p>
-            </div>
+            {strategy === 'grid-trading' ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="grid-interval">Grid Interval ($)</Label>
+                  <Input
+                    id="grid-interval"
+                    type="number"
+                    value={gridInterval}
+                    onChange={(e) => setGridInterval(e.target.value)}
+                    placeholder="2000"
+                    data-testid="input-grid-interval"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Buy when price drops by this amount (default: $2000)
+                  </p>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="take-profit">Take Profit (%)</Label>
-              <Input
-                id="take-profit"
-                type="number"
-                value={takeProfit}
-                onChange={(e) => setTakeProfit(e.target.value)}
-                placeholder="5.0"
-                data-testid="input-take-profit"
-              />
-              <p className="text-xs text-muted-foreground">
-                Automatically sell if price rises by this %
-              </p>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="grid-profit">Profit Target (%)</Label>
+                  <Input
+                    id="grid-profit"
+                    type="number"
+                    value={gridProfitPercent}
+                    onChange={(e) => setGridProfitPercent(e.target.value)}
+                    placeholder="5.0"
+                    data-testid="input-grid-profit"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Sell at this % profit from buy price (default: 5%)
+                  </p>
+                </div>
+
+                <Card className="p-4 bg-primary/10 border-primary/20">
+                  <h4 className="text-sm font-semibold mb-2">How Grid Trading Works</h4>
+                  <ul className="space-y-1 text-xs text-muted-foreground">
+                    <li>• Bot records Bitcoin price when started</li>
+                    <li>• Buys every ${gridInterval} dip from initial price</li>
+                    <li>• Each buy creates a paired sell order at {gridProfitPercent}% profit</li>
+                    <li>• Continuously runs to capture profits from volatility</li>
+                  </ul>
+                </Card>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="stop-loss">Stop Loss (%)</Label>
+                  <Input
+                    id="stop-loss"
+                    type="number"
+                    value={stopLoss}
+                    onChange={(e) => setStopLoss(e.target.value)}
+                    placeholder="2.5"
+                    data-testid="input-stop-loss"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Automatically sell if price drops by this %
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="take-profit">Take Profit (%)</Label>
+                  <Input
+                    id="take-profit"
+                    type="number"
+                    value={takeProfit}
+                    onChange={(e) => setTakeProfit(e.target.value)}
+                    placeholder="5.0"
+                    data-testid="input-take-profit"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Automatically sell if price rises by this %
+                  </p>
+                </div>
+              </>
+            )}
 
             <Card className="p-4 bg-muted/50">
               <h4 className="text-sm font-semibold mb-2">Configuration Summary</h4>
