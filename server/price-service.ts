@@ -28,9 +28,11 @@ class PriceService {
 
       if (activeCredential) {
         // Use exchange API
+        console.log(`🔄 Fetching price from ${activeCredential.exchange.toUpperCase()}${activeCredential.exchangeUrl ? ` (Custom URL: ${activeCredential.exchangeUrl})` : ' (Default URL)'}`);
         return await this.fetchFromExchange(activeCredential.exchange, activeCredential.exchangeUrl);
       } else {
         // Use CoinGecko as fallback
+        console.log('🔄 No active exchange credentials found, fetching from CoinGecko');
         return await this.fetchFromCoinGecko();
       }
     } catch (error) {
@@ -52,9 +54,10 @@ class PriceService {
   }
 
   private async fetchFromCoinGecko(): Promise<BitcoinPrice> {
-    const response = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_high_low=true'
-    );
+    const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_high_low=true';
+    console.log(`📡 Calling CoinGecko API: ${url}`);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error('Failed to fetch price from CoinGecko');
@@ -95,9 +98,12 @@ class PriceService {
 
   private async fetchFromBinance(customUrl?: string | null): Promise<BitcoinPrice> {
     const baseUrl = customUrl || 'https://api.binance.com/api/v3';
+    const fullUrl = `${baseUrl}/ticker/24hr?symbol=BTCUSDT`;
+    
+    console.log(`📡 Calling Binance API: ${fullUrl}`);
     
     // Get 24h ticker for BTC/USDT
-    const response = await fetch(`${baseUrl}/ticker/24hr?symbol=BTCUSDT`);
+    const response = await fetch(fullUrl);
     
     if (!response.ok) {
       throw new Error('Failed to fetch price from Binance');
