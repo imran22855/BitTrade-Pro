@@ -5,7 +5,8 @@ import {
   type Portfolio, type InsertPortfolio,
   type PriceAlert, type InsertPriceAlert,
   type ExchangeCredential, type InsertExchangeCredential,
-  type NotificationSettings, type InsertNotificationSettings
+  type NotificationSettings, type InsertNotificationSettings,
+  type StrategyEvent, type InsertStrategyEvent
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -46,6 +47,10 @@ export interface IStorage {
   getNotificationSettings(userId: string): Promise<NotificationSettings | undefined>;
   createNotificationSettings(settings: InsertNotificationSettings): Promise<NotificationSettings>;
   updateNotificationSettings(userId: string, updates: Partial<NotificationSettings>): Promise<NotificationSettings | undefined>;
+
+  // Strategy Events
+  getStrategyEvents(strategyId: string, limit?: number): Promise<StrategyEvent[]>;
+  createStrategyEvent(event: InsertStrategyEvent): Promise<StrategyEvent>;
 }
 
 export class MemStorage implements IStorage {
@@ -56,6 +61,7 @@ export class MemStorage implements IStorage {
   private alerts: Map<string, PriceAlert>;
   private credentials: Map<string, ExchangeCredential>;
   private notificationSettings: Map<string, NotificationSettings>;
+  private strategyEvents: Map<string, StrategyEvent>;
 
   constructor() {
     this.users = new Map();
@@ -65,6 +71,7 @@ export class MemStorage implements IStorage {
     this.alerts = new Map();
     this.credentials = new Map();
     this.notificationSettings = new Map();
+    this.strategyEvents = new Map();
   }
 
   // User methods (Replit Auth)
@@ -309,6 +316,29 @@ export class MemStorage implements IStorage {
     const updated: NotificationSettings = { ...settings, ...updates };
     this.notificationSettings.set(settings.id, updated);
     return updated;
+  }
+
+  // Strategy events methods
+  async getStrategyEvents(strategyId: string, limit?: number): Promise<StrategyEvent[]> {
+    const events = Array.from(this.strategyEvents.values())
+      .filter(e => e.strategyId === strategyId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    
+    return limit ? events.slice(0, limit) : events;
+  }
+
+  async createStrategyEvent(event: InsertStrategyEvent): Promise<StrategyEvent> {
+    const id = randomUUID();
+    const newEvent: StrategyEvent = {
+      id,
+      userId: event.userId,
+      strategyId: event.strategyId,
+      eventType: event.eventType,
+      eventData: event.eventData ?? null,
+      timestamp: new Date(),
+    };
+    this.strategyEvents.set(id, newEvent);
+    return newEvent;
   }
 }
 

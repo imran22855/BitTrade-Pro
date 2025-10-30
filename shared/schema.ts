@@ -118,6 +118,23 @@ export const notificationSettings = pgTable("notification_settings", {
   }),
 });
 
+export const strategyEvents = pgTable("strategy_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  strategyId: varchar("strategy_id").notNull().references(() => tradingStrategies.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(), // 'started' or 'stopped'
+  eventData: jsonb("event_data").$type<{
+    initialPrice?: number;
+    currentPrice?: number;
+    gridInterval?: number;
+    profitPercent?: number;
+    tradeSize?: number;
+    strategyType?: string;
+    strategyName?: string;
+  }>(),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertStrategySchema = createInsertSchema(tradingStrategies).omit({ id: true, createdAt: true });
@@ -126,6 +143,7 @@ export const insertPortfolioSchema = createInsertSchema(portfolio).omit({ id: tr
 export const insertPriceAlertSchema = createInsertSchema(priceAlerts).omit({ id: true, createdAt: true });
 export const insertExchangeCredentialSchema = createInsertSchema(exchangeCredentials).omit({ id: true, createdAt: true });
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings).omit({ id: true });
+export const insertStrategyEventSchema = createInsertSchema(strategyEvents).omit({ id: true, timestamp: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -149,3 +167,6 @@ export type InsertExchangeCredential = z.infer<typeof insertExchangeCredentialSc
 
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
+
+export type StrategyEvent = typeof strategyEvents.$inferSelect;
+export type InsertStrategyEvent = z.infer<typeof insertStrategyEventSchema>;
