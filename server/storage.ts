@@ -6,9 +6,12 @@ import {
   type PriceAlert, type InsertPriceAlert,
   type ExchangeCredential, type InsertExchangeCredential,
   type NotificationSettings, type InsertNotificationSettings,
-  type StrategyEvent, type InsertStrategyEvent
+  type StrategyEvent, type InsertStrategyEvent,
+  exchangeCredentials
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // User management (Replit Auth)
@@ -39,6 +42,7 @@ export interface IStorage {
 
   // Exchange Credentials
   getExchangeCredentials(userId: string): Promise<ExchangeCredential[]>;
+  getAnyActiveCredential(): Promise<ExchangeCredential | undefined>;
   createExchangeCredential(credential: InsertExchangeCredential): Promise<ExchangeCredential>;
   updateExchangeCredential(id: string, updates: Partial<ExchangeCredential>): Promise<ExchangeCredential | undefined>;
   deleteExchangeCredential(id: string): Promise<boolean>;
@@ -251,38 +255,47 @@ export class MemStorage implements IStorage {
     return this.alerts.delete(id);
   }
 
-  // Exchange credential methods
+  // Exchange credential methods (DATABASE-BACKED)
   async getExchangeCredentials(userId: string): Promise<ExchangeCredential[]> {
-    return Array.from(this.credentials.values()).filter(c => c.userId === userId);
+    const results = await db
+      .select()
+      .from(exchangeCredentials)
+      .where(eq(exchangeCredentials.userId, userId));
+    return results;
+  }
+
+  async getAnyActiveCredential(): Promise<ExchangeCredential | undefined> {
+    const [result] = await db
+      .select()
+      .from(exchangeCredentials)
+      .where(eq(exchangeCredentials.isActive, true))
+      .limit(1);
+    return result;
   }
 
   async createExchangeCredential(credential: InsertExchangeCredential): Promise<ExchangeCredential> {
-    const id = randomUUID();
-    const newCred: ExchangeCredential = { 
-      id,
-      userId: credential.userId,
-      exchange: credential.exchange,
-      apiKey: credential.apiKey,
-      secretKey: credential.secretKey,
-      exchangeUrl: credential.exchangeUrl ?? null,
-      isActive: credential.isActive ?? false,
-      createdAt: new Date()
-    };
-    this.credentials.set(id, newCred);
+    const [newCred] = await db
+      .insert(exchangeCredentials)
+      .values(credential)
+      .returning();
     return newCred;
   }
 
   async updateExchangeCredential(id: string, updates: Partial<ExchangeCredential>): Promise<ExchangeCredential | undefined> {
-    const credential = this.credentials.get(id);
-    if (!credential) return undefined;
-    
-    const updated: ExchangeCredential = { ...credential, ...updates };
-    this.credentials.set(id, updated);
+    const [updated] = await db
+      .update(exchangeCredentials)
+      .set(updates)
+      .where(eq(exchangeCredentials.id, id))
+      .returning();
     return updated;
   }
 
   async deleteExchangeCredential(id: string): Promise<boolean> {
-    return this.credentials.delete(id);
+    const result = await db
+      .delete(exchangeCredentials)
+      .where(eq(exchangeCredentials.id, id))
+      .returning();
+    return result.length > 0;
   }
 
   // Notification settings methods

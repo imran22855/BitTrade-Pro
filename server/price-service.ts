@@ -21,10 +21,8 @@ class PriceService {
 
   async fetchPrice(): Promise<BitcoinPrice> {
     try {
-      // Check for active exchange credentials
-      const userId = "demo-user";
-      const credentials = await storage.getExchangeCredentials(userId);
-      const activeCredential = credentials.find(cred => cred.isActive);
+      // Check for any active exchange credentials (from any user)
+      const activeCredential = await storage.getAnyActiveCredential();
 
       if (activeCredential) {
         // Use exchange API
