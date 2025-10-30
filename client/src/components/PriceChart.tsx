@@ -72,7 +72,7 @@ export function PriceChart() {
                   stroke="hsl(var(--muted-foreground))"
                   style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}
                   domain={[(dataMin: number) => dataMin - 500, (dataMax: number) => dataMax + 500]}
-                  tickFormatter={(value) => `$${value.toLocaleString()}`}
+                  tickFormatter={(value) => `$${Math.round(value).toLocaleString()}`}
                   width={80}
                 />
                 <Tooltip 
