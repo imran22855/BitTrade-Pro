@@ -3,67 +3,50 @@ import { PortfolioOverview } from "@/components/PortfolioOverview";
 import { TradingBotPanel } from "@/components/TradingBotPanel";
 import { PriceChart } from "@/components/PriceChart";
 import { TransactionsTable } from "@/components/TransactionsTable";
-import { useState } from "react";
-
-// todo: remove mock functionality
-const mockTransactions = [
-  {
-    id: '1',
-    time: '14:32:10',
-    type: 'buy' as const,
-    amount: 0.052,
-    price: 67842.50,
-    total: 3527.81,
-    status: 'completed' as const
-  },
-  {
-    id: '2',
-    time: '13:15:42',
-    type: 'sell' as const,
-    amount: 0.038,
-    price: 67520.00,
-    total: 2565.76,
-    status: 'completed' as const
-  },
-  {
-    id: '3',
-    time: '12:08:33',
-    type: 'buy' as const,
-    amount: 0.075,
-    price: 67100.00,
-    total: 5032.50,
-    status: 'pending' as const
-  },
-  {
-    id: '4',
-    time: '11:42:18',
-    type: 'buy' as const,
-    amount: 0.120,
-    price: 66950.00,
-    total: 8034.00,
-    status: 'completed' as const
-  },
-  {
-    id: '5',
-    time: '10:25:55',
-    type: 'sell' as const,
-    amount: 0.095,
-    price: 67200.00,
-    total: 6384.00,
-    status: 'completed' as const
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 
 export default function Dashboard() {
-  const [botActive, setBotActive] = useState(true);
+  const { data: priceData, isLoading: priceLoading } = useQuery({
+    queryKey: ['/api/price/current'],
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/stats'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const { data: transactions, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['/api/transactions'],
+    refetchInterval: 15000,
+  });
+
+  if (priceLoading || statsLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-40 w-full" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-96 lg:col-span-2" />
+          <Skeleton className="h-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <PriceDisplay 
-        price={67842.50}
-        change24h={3.25}
-        high24h={68420.00}
-        low24h={66100.00}
+        price={priceData?.price || 0}
+        change24h={priceData?.change24h || 0}
+        high24h={priceData?.high24h || 0}
+        low24h={priceData?.low24h || 0}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -72,27 +55,33 @@ export default function Dashboard() {
         </div>
         <div>
           <TradingBotPanel 
-            stats={{
-              isActive: botActive,
-              strategyName: "Moving Average Crossover",
-              tradesToday: 12,
-              successRate: 68,
-              activePositions: 3
+            stats={statsData?.bot || {
+              isActive: false,
+              strategyName: "No active strategy",
+              tradesToday: 0,
+              successRate: 0,
+              activePositions: 0
             }}
-            onToggle={setBotActive}
-            onConfigure={() => console.log('Configure strategy')}
+            onToggle={() => {}}
+            onConfigure={() => window.location.href = '/bot'}
           />
         </div>
       </div>
 
       <PortfolioOverview 
-        totalValue={105842.50}
-        todayPL={2847.32}
-        totalPL={5842.50}
-        btcBalance={1.5642}
+        totalValue={statsData?.portfolio?.totalValue || 100000}
+        todayPL={statsData?.portfolio?.todayPL || 0}
+        totalPL={statsData?.portfolio?.totalPL || 0}
+        btcBalance={parseFloat(statsData?.portfolio?.btcBalance || "0")}
       />
 
-      <TransactionsTable transactions={mockTransactions} />
+      {transactionsLoading ? (
+        <Card className="p-6">
+          <Skeleton className="h-64 w-full" />
+        </Card>
+      ) : (
+        <TransactionsTable transactions={transactions || []} />
+      )}
     </div>
   );
 }
