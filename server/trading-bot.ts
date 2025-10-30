@@ -139,55 +139,61 @@ class TradingBot {
       return;
     }
 
-    // Calculate which grid level we're at (how many $2000 dips below initial)
-    const priceDrop = initialPrice - currentPrice;
-    const gridLevel = Math.floor(priceDrop / gridInterval);
+    // Calculate grid levels both above and below initial price
+    const priceDifference = currentPrice - initialPrice;
+    const gridLevel = Math.round(priceDifference / gridInterval);
 
-    // Check for buy opportunities at grid levels
-    if (gridLevel > 0) {
-      // Calculate the buy price for this grid level
-      const targetBuyPrice = initialPrice - (gridLevel * gridInterval);
-      
-      // Check if we already have an order at this level
-      const existingOrder = gridOrders.find(order => 
-        Math.abs(order.buyPrice - targetBuyPrice) < 1 // within $1
-      );
+    // Calculate the target buy price for the nearest grid level
+    let targetBuyPrice: number;
+    
+    if (gridLevel >= 0) {
+      // Price is at or above initial - buy at grid intervals above
+      targetBuyPrice = initialPrice + (gridLevel * gridInterval);
+    } else {
+      // Price is below initial - buy at grid intervals below (dip buying)
+      targetBuyPrice = initialPrice + (gridLevel * gridInterval); // gridLevel is negative, so this subtracts
+    }
 
-      // Place buy order if we're at or below the grid level and don't have an existing order
-      if (!existingOrder && currentPrice <= targetBuyPrice && parseFloat(portfolio.usdBalance) > 100) {
-        const usdToSpend = parseFloat(portfolio.usdBalance) * tradeSizePercent;
-        const btcAmount = usdToSpend / currentPrice;
-        const sellPrice = currentPrice * (1 + profitPercent / 100);
+    // Check if we already have an order at this level
+    const existingOrder = gridOrders.find(order => 
+      Math.abs(order.buyPrice - targetBuyPrice) < 1 // within $1
+    );
 
-        // Create buy transaction
-        await storage.createTransaction({
-          userId: strategy.userId,
-          strategyId: strategy.id,
-          type: 'buy',
-          amount: btcAmount.toString(),
-          price: currentPrice.toString(),
-          total: usdToSpend.toString(),
-          status: 'completed',
-        });
+    // Place buy order if we're at or near the grid level and don't have an existing order
+    if (!existingOrder && Math.abs(currentPrice - targetBuyPrice) < gridInterval / 2 && parseFloat(portfolio.usdBalance) > 100) {
+      const usdToSpend = parseFloat(portfolio.usdBalance) * tradeSizePercent;
+      const btcAmount = usdToSpend / currentPrice;
+      const sellPrice = currentPrice * (1 + profitPercent / 100);
 
-        // Update portfolio
-        await storage.updatePortfolio(strategy.userId, {
-          btcBalance: (parseFloat(portfolio.btcBalance) + btcAmount).toString(),
-          usdBalance: (parseFloat(portfolio.usdBalance) - usdToSpend).toString(),
-        });
+      // Create buy transaction
+      await storage.createTransaction({
+        userId: strategy.userId,
+        strategyId: strategy.id,
+        type: 'buy',
+        amount: btcAmount.toString(),
+        price: currentPrice.toString(),
+        total: usdToSpend.toString(),
+        status: 'completed',
+      });
 
-        // Add paired sell order to grid
-        gridOrders.push({
-          buyPrice: currentPrice,
-          sellPrice: sellPrice,
-          btcAmount: btcAmount,
-          filled: false,
-        });
+      // Update portfolio
+      await storage.updatePortfolio(strategy.userId, {
+        btcBalance: (parseFloat(portfolio.btcBalance) + btcAmount).toString(),
+        usdBalance: (parseFloat(portfolio.usdBalance) - usdToSpend).toString(),
+      });
 
-        await storage.updateStrategy(strategy.id, { strategyState: { ...state, gridOrders } });
+      // Add paired sell order to grid
+      gridOrders.push({
+        buyPrice: currentPrice,
+        sellPrice: sellPrice,
+        btcAmount: btcAmount,
+        filled: false,
+      });
 
-        console.log(`Grid Trading BUY: ${btcAmount.toFixed(8)} BTC at $${currentPrice.toFixed(2)} (Grid level ${gridLevel}) - Paired sell at $${sellPrice.toFixed(2)}`);
-      }
+      await storage.updateStrategy(strategy.id, { strategyState: { ...state, gridOrders } });
+
+      const direction = gridLevel >= 0 ? 'above' : 'below';
+      console.log(`Grid Trading BUY: ${btcAmount.toFixed(8)} BTC at $${currentPrice.toFixed(2)} (Grid level ${gridLevel} ${direction} initial) - Paired sell at $${sellPrice.toFixed(2)}`);
     }
 
     // Check for sell opportunities (5% profit from buy price)
