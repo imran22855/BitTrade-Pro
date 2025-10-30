@@ -28,10 +28,18 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
   // Grid trading specific fields
   const [gridInterval, setGridInterval] = useState('2000');
   const [gridProfitPercent, setGridProfitPercent] = useState('5.0');
+  
+  // Traditional grid specific fields
+  const [gridLowerBound, setGridLowerBound] = useState('60000');
+  const [gridUpperBound, setGridUpperBound] = useState('120000');
 
   const handleSave = () => {
+    let name = 'Trading Bot';
+    if (strategy === 'grid-trading') name = 'Grid Trading Bot (Dip Buying)';
+    if (strategy === 'traditional-grid') name = 'Traditional Grid Trading Bot';
+    
     const config: any = {
-      name: strategy === 'grid-trading' ? 'Grid Trading Bot' : 'Trading Bot',
+      name,
       type: strategy,
       riskTolerance: riskTolerance[0],
       stopLoss: stopLoss, // Keep as string for decimal field
@@ -43,6 +51,13 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
     if (strategy === 'grid-trading') {
       config.gridInterval = gridInterval; // Keep as string for decimal field
       config.gridProfitPercent = gridProfitPercent; // Keep as string for decimal field
+    }
+    
+    // Add traditional grid specific fields
+    if (strategy === 'traditional-grid') {
+      config.gridInterval = gridInterval; // Keep as string for decimal field
+      config.gridLowerBound = gridLowerBound; // Keep as string for decimal field
+      config.gridUpperBound = gridUpperBound; // Keep as string for decimal field
     }
     
     console.log('Saving strategy config:', config);
@@ -66,6 +81,7 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="grid-trading">Grid Trading (Auto Buy Dips)</SelectItem>
+                  <SelectItem value="traditional-grid">Traditional Grid Trading</SelectItem>
                   <SelectItem value="ma-crossover">Moving Average Crossover</SelectItem>
                   <SelectItem value="rsi">RSI Based Trading</SelectItem>
                   <SelectItem value="macd">MACD Strategy</SelectItem>
@@ -143,6 +159,64 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
                     <li>• Buys every ${gridInterval} dip from initial price</li>
                     <li>• Each buy creates a paired sell order at {gridProfitPercent}% profit</li>
                     <li>• Continuously runs to capture profits from volatility</li>
+                  </ul>
+                </Card>
+              </>
+            ) : strategy === 'traditional-grid' ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="grid-lower-bound">Lower Price Bound ($)</Label>
+                  <Input
+                    id="grid-lower-bound"
+                    type="number"
+                    value={gridLowerBound}
+                    onChange={(e) => setGridLowerBound(e.target.value)}
+                    placeholder="60000"
+                    data-testid="input-grid-lower-bound"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Minimum price for the grid (e.g., $60,000)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="grid-upper-bound">Upper Price Bound ($)</Label>
+                  <Input
+                    id="grid-upper-bound"
+                    type="number"
+                    value={gridUpperBound}
+                    onChange={(e) => setGridUpperBound(e.target.value)}
+                    placeholder="120000"
+                    data-testid="input-grid-upper-bound"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Maximum price for the grid (e.g., $120,000)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="trad-grid-interval">Grid Interval ($)</Label>
+                  <Input
+                    id="trad-grid-interval"
+                    type="number"
+                    value={gridInterval}
+                    onChange={(e) => setGridInterval(e.target.value)}
+                    placeholder="2000"
+                    data-testid="input-trad-grid-interval"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Price spacing between grid levels (default: $2000)
+                  </p>
+                </div>
+
+                <Card className="p-4 bg-primary/10 border-primary/20">
+                  <h4 className="text-sm font-semibold mb-2">How Traditional Grid Works</h4>
+                  <ul className="space-y-1 text-xs text-muted-foreground">
+                    <li>• Places buy orders BELOW current price</li>
+                    <li>• Places sell orders ABOVE current price</li>
+                    <li>• Grid levels spaced by ${gridInterval}</li>
+                    <li>• Profits from price oscillations in ranging markets</li>
+                    <li>• Best when price moves sideways between bounds</li>
                   </ul>
                 </Card>
               </>

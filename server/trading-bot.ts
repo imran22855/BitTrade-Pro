@@ -47,6 +47,8 @@ class TradingBot {
     // Route to appropriate strategy implementation
     if (strategy.type === 'grid-trading') {
       await this.executeGridTrading(strategy, currentPrice.price, portfolio);
+    } else if (strategy.type === 'traditional-grid') {
+      await this.executeTraditionalGrid(strategy, currentPrice.price, portfolio);
     } else {
       await this.executeDefaultStrategy(strategy, currentPrice.price, portfolio);
     }
@@ -213,6 +215,184 @@ class TradingBot {
         const profit = usdReceived - (order.btcAmount * order.buyPrice);
         console.log(`Grid Trading SELL: ${order.btcAmount.toFixed(8)} BTC at $${currentPrice.toFixed(2)} (Profit: $${profit.toFixed(2)})`);
       }
+    }
+  }
+
+  private async executeTraditionalGrid(strategy: TradingStrategy, currentPrice: number, portfolio: any) {
+    // Traditional bidirectional grid trading
+    let state = strategy.strategyState as { 
+      gridLevels?: Array<{ price: number; hasBuyOrder: boolean; hasSellOrder: boolean }>;
+      activeOrders?: Array<{ id: string; type: 'buy' | 'sell'; price: number; btcAmount: number; gridLevel: number; filled: boolean }>;
+    } | null;
+
+    const lowerBound = parseFloat(strategy.gridLowerBound || "0");
+    const upperBound = parseFloat(strategy.gridUpperBound || "0");
+    const gridInterval = parseFloat(strategy.gridInterval || "2000");
+    const tradeSizePercent = strategy.tradeSize / 100;
+
+    // Validate bounds
+    if (lowerBound <= 0 || upperBound <= 0 || lowerBound >= upperBound) {
+      console.log('Traditional Grid: Invalid bounds, skipping');
+      return;
+    }
+
+    // Initialize grid on first run
+    if (!state || !state.gridLevels) {
+      const gridLevels: Array<{ price: number; hasBuyOrder: boolean; hasSellOrder: boolean }> = [];
+      let price = lowerBound;
+      
+      while (price <= upperBound) {
+        gridLevels.push({ price, hasBuyOrder: false, hasSellOrder: false });
+        price += gridInterval;
+      }
+
+      state = {
+        gridLevels,
+        activeOrders: [],
+      };
+
+      await storage.updateStrategy(strategy.id, { strategyState: state });
+      console.log(`Traditional Grid initialized: ${gridLevels.length} levels from $${lowerBound} to $${upperBound}`);
+      return;
+    }
+
+    const gridLevels = state.gridLevels!;
+    const activeOrders = state.activeOrders || [];
+    let ordersChanged = false;
+
+    // Find current grid level
+    let currentLevel = -1;
+    for (let i = 0; i < gridLevels.length; i++) {
+      if (currentPrice >= gridLevels[i].price && (i === gridLevels.length - 1 || currentPrice < gridLevels[i + 1].price)) {
+        currentLevel = i;
+        break;
+      }
+    }
+
+    if (currentLevel === -1) {
+      console.log(`Traditional Grid: Price $${currentPrice} is outside grid bounds`);
+      return;
+    }
+
+    // Place buy orders at levels BELOW current price (if we have USD)
+    if (parseFloat(portfolio.usdBalance) > 100) {
+      for (let i = 0; i < currentLevel; i++) {
+        const level = gridLevels[i];
+        
+        // Check if we already have a buy order at this level
+        const existingBuyOrder = activeOrders.find(
+          order => order.type === 'buy' && order.gridLevel === i && !order.filled
+        );
+
+        if (!existingBuyOrder) {
+          const usdToSpend = parseFloat(portfolio.usdBalance) * tradeSizePercent;
+          const btcAmount = usdToSpend / level.price;
+
+          activeOrders.push({
+            id: `buy-${i}-${Date.now()}`,
+            type: 'buy',
+            price: level.price,
+            btcAmount,
+            gridLevel: i,
+            filled: false,
+          });
+
+          gridLevels[i].hasBuyOrder = true;
+          ordersChanged = true;
+          console.log(`Traditional Grid: Placed BUY order at $${level.price.toFixed(2)} (Level ${i})`);
+        }
+      }
+    }
+
+    // Place sell orders at levels ABOVE current price (if we have BTC)
+    if (parseFloat(portfolio.btcBalance) > 0.0001) {
+      for (let i = currentLevel + 1; i < gridLevels.length; i++) {
+        const level = gridLevels[i];
+        
+        // Check if we already have a sell order at this level
+        const existingSellOrder = activeOrders.find(
+          order => order.type === 'sell' && order.gridLevel === i && !order.filled
+        );
+
+        if (!existingSellOrder) {
+          const btcToSell = parseFloat(portfolio.btcBalance) * tradeSizePercent;
+
+          activeOrders.push({
+            id: `sell-${i}-${Date.now()}`,
+            type: 'sell',
+            price: level.price,
+            btcAmount: btcToSell,
+            gridLevel: i,
+            filled: false,
+          });
+
+          gridLevels[i].hasSellOrder = true;
+          ordersChanged = true;
+          console.log(`Traditional Grid: Placed SELL order at $${level.price.toFixed(2)} (Level ${i})`);
+        }
+      }
+    }
+
+    // Execute orders when price crosses levels
+    for (let i = 0; i < activeOrders.length; i++) {
+      const order = activeOrders[i];
+      
+      if (order.filled) continue;
+
+      // Execute buy orders when price drops to or below the order price
+      if (order.type === 'buy' && currentPrice <= order.price && parseFloat(portfolio.usdBalance) >= (order.btcAmount * order.price)) {
+        const usdToSpend = order.btcAmount * order.price;
+
+        await storage.createTransaction({
+          userId: strategy.userId,
+          strategyId: strategy.id,
+          type: 'buy',
+          amount: order.btcAmount.toString(),
+          price: order.price.toString(),
+          total: usdToSpend.toString(),
+          status: 'completed',
+        });
+
+        await storage.updatePortfolio(strategy.userId, {
+          btcBalance: (parseFloat(portfolio.btcBalance) + order.btcAmount).toString(),
+          usdBalance: (parseFloat(portfolio.usdBalance) - usdToSpend).toString(),
+        });
+
+        activeOrders[i].filled = true;
+        ordersChanged = true;
+        console.log(`Traditional Grid EXECUTED BUY: ${order.btcAmount.toFixed(8)} BTC at $${order.price.toFixed(2)} (Level ${order.gridLevel})`);
+      }
+
+      // Execute sell orders when price rises to or above the order price
+      if (order.type === 'sell' && currentPrice >= order.price && parseFloat(portfolio.btcBalance) >= order.btcAmount) {
+        const usdReceived = order.btcAmount * order.price;
+
+        await storage.createTransaction({
+          userId: strategy.userId,
+          strategyId: strategy.id,
+          type: 'sell',
+          amount: order.btcAmount.toString(),
+          price: order.price.toString(),
+          total: usdReceived.toString(),
+          status: 'completed',
+        });
+
+        await storage.updatePortfolio(strategy.userId, {
+          btcBalance: (parseFloat(portfolio.btcBalance) - order.btcAmount).toString(),
+          usdBalance: (parseFloat(portfolio.usdBalance) + usdReceived).toString(),
+        });
+
+        activeOrders[i].filled = true;
+        ordersChanged = true;
+        console.log(`Traditional Grid EXECUTED SELL: ${order.btcAmount.toFixed(8)} BTC at $${order.price.toFixed(2)} (Level ${order.gridLevel})`);
+      }
+    }
+
+    // Update state if orders changed
+    if (ordersChanged) {
+      await storage.updateStrategy(strategy.id, { 
+        strategyState: { gridLevels, activeOrders } 
+      });
     }
   }
 
