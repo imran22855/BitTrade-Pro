@@ -104,10 +104,13 @@ class PriceService {
     const response = await fetch(fullUrl);
     
     if (!response.ok) {
-      throw new Error('Failed to fetch price from Binance');
+      const errorText = await response.text();
+      console.error(`❌ Binance API Error (${response.status}):`, errorText);
+      throw new Error(`Failed to fetch price from Binance: ${response.status} - ${errorText.substring(0, 200)}`);
     }
 
     const data = await response.json();
+    console.log(`✅ Binance API Response: Price=${data.lastPrice}, Change=${data.priceChangePercent}%`);
 
     this.currentPrice = {
       price: parseFloat(data.lastPrice),
