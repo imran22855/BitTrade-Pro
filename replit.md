@@ -107,20 +107,31 @@ The application defines the following core tables:
 **Data Access Pattern**
 - Repository pattern via storage interface (IStorage)
 - Type-safe schema validation using Drizzle Zod
-- Default "demo-user" for MVP without full authentication
+- User-scoped data access using authenticated user ID from OIDC claims
 
 ### Authentication and Authorization
 
 **Current Implementation**
-- Demo mode with hardcoded "demo-user" ID
-- Session-based approach prepared (connect-pg-simple for session storage)
-- No active authentication required for initial version
+- **Replit Auth (OIDC)**: Secure authentication via OAuth with support for Google, GitHub, Apple, X, and email/password login
+- **Session Management**: PostgreSQL-backed sessions using connect-pg-simple for persistent user sessions
+- **User Management**: Automatic user creation/update on login with profile data (email, firstName, lastName, profileImageUrl)
+- **Protected Routes**: All API endpoints (except `/api/price/*` and auth routes) require authentication via `isAuthenticated` middleware
+- **Frontend Auth**: `useAuth()` hook provides authentication state, user data, and loading status
+- **Login Flow**: Landing page for logged-out users → Replit Auth login → Redirect to Dashboard
+- **User Experience**: Optimized single auth query at layout level prevents duplicate requests, loading spinner during auth check
 
-**Future Considerations**
-- User registration and login system
-- Password hashing for security
-- Session management with PostgreSQL session store
-- Protected API routes with authentication middleware
+**Security Features**
+- Session-based authentication with secure cookies
+- User ID from OIDC claims (`req.user.claims.sub`) used for all database operations
+- Protected API routes reject unauthenticated requests with 401 status
+- Automatic session persistence across browser refreshes
+- Secure logout clears session and redirects to landing page
+
+**User Interface**
+- Landing page displays for unauthenticated users with "Get Started" login button
+- Dashboard with sidebar displays for authenticated users
+- User profile information shown in sidebar footer (avatar, name, email)
+- Logout button in sidebar footer for easy session termination
 
 ## External Dependencies
 
