@@ -60,13 +60,13 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-mono font-semibold">
-                    {tx.amount.toFixed(6)}
+                    {Number(tx.amount).toFixed(6)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    ${tx.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${Number(tx.price).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="text-right font-mono font-semibold">
-                    ${tx.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${Number(tx.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell>
                     <Badge 
