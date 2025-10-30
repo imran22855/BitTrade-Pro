@@ -1,0 +1,42 @@
+Design an Automatic Bitcoin Trading App**
+
+**Objective:** Create a comprehensive plan for developing an automatic Bitcoin trading application, covering high-level product design, user interface (UI) design, and various stages of app development.
+
+**Instructions:**
+
+1. **High-Level Product Design:**
+   - Define the core features of the app (e.g., user authentication, wallet integration, trading algorithms, market analysis tools, notifications).
+   - Identify the target audience and user personas (e.g., beginner traders, experienced traders).
+   - Outline the value proposition and unique selling points of the app compared to existing solutions.
+   - Describe the technology stack required for backend and frontend development (e.g., programming languages, frameworks, databases).
+   - Include considerations for security, compliance with regulations, and data privacy.
+
+2. **User Interface (UI) Design:**
+   - Create a wireframe for the main app screens (e.g., dashboard, trading interface, wallet management, settings).
+   - Specify design elements such as color scheme, typography, and iconography.
+   - Develop user flow diagrams to illustrate how users will navigate through the app.
+   - Propose usability testing strategies to ensure a user-friendly experience.
+
+3. **Stages of App Development:**
+   - **Planning:**
+     - Detail the project timeline, milestones, and deliverables.
+     - Identify team roles and responsibilities (e.g., project manager, developers, designers).
+   - **Design:**
+     - Elaborate on the iterative design process, including user feedback integration.
+   - **Development:**
+     - Outline the software development lifecycle (e.g., agile methodology, sprints).
+     - Discuss integration with external APIs for market data and trading execution.
+   - **Testing:**
+     - Define testing strategies (e.g., unit testing, integration testing, user acceptance testing).
+     - Highlight the importance of performance and security testing.
+   - **Deployment:**
+     - Describe the deployment process to app stores (iOS and Android) and web platforms.
+     - Include post-launch support strategies for users.
+   - **Maintenance and Updates:**
+     - Plan for regular updates and feature enhancements based on user feedback and market trends.
+
+4. **Documentation and Support:**
+   - Create a plan for user documentation (e.g., FAQs, user manuals, video tutorials).
+   - Propose a customer support strategy (e.g., in-app chat, email support, community forums).
+
+**Output Format:** Provide a detailed report or presentation that encompasses all aspects mentioned above, with visual aids where applicable. Include examples, diagrams, and any relevant research to support your design decisions.
