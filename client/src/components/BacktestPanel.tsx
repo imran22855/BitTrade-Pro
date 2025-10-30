@@ -15,6 +15,7 @@ import { Play, Download, CalendarIcon, TrendingUp, DollarSign, Activity } from "
 import { useState } from "react";
 import { format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Scatter } from "recharts";
+import { useQuery } from "@tanstack/react-query";
 
 // Mock backtest data - todo: remove mock functionality
 const generateBacktestResults = () => {
@@ -34,33 +35,31 @@ const generateBacktestResults = () => {
   return data;
 };
 
-// Generate price data with buy/sell signals
-const generatePriceData = () => {
-  const data = [];
-  let price = 65000;
-  const now = Date.now();
-  
-  for (let i = 0; i <= 30; i++) {
-    const timestamp = now - ((30 - i) * 86400000);
-    // Simulate price movement
-    price = price + (Math.random() - 0.5) * 2000;
-    
+// Simulate trading signals based on price data
+const simulateTradingSignals = (priceData: Array<{ timestamp: number; price: number }>) => {
+  return priceData.map((item, index) => {
     const dataPoint: any = {
-      date: format(new Date(timestamp), 'MM/dd'),
-      price: Math.round(price),
+      date: format(new Date(item.timestamp), 'MM/dd'),
+      price: Math.round(item.price),
     };
     
-    // Add buy/sell signals randomly (simulate strategy triggers)
-    const rand = Math.random();
-    if (rand > 0.85) {
-      dataPoint.buy = Math.round(price);
-    } else if (rand < 0.15) {
-      dataPoint.sell = Math.round(price);
+    // Simple strategy simulation: buy when price dips, sell when price peaks
+    if (index > 0 && index < priceData.length - 1) {
+      const prevPrice = priceData[index - 1].price;
+      const nextPrice = priceData[index + 1].price;
+      
+      // Buy signal: price dropped from previous and will rise
+      if (item.price < prevPrice && item.price < nextPrice && Math.random() > 0.7) {
+        dataPoint.buy = Math.round(item.price);
+      }
+      // Sell signal: price rose from previous and will drop
+      else if (item.price > prevPrice && item.price > nextPrice && Math.random() > 0.7) {
+        dataPoint.sell = Math.round(item.price);
+      }
     }
     
-    data.push(dataPoint);
-  }
-  return data;
+    return dataPoint;
+  });
 };
 
 export function BacktestPanel() {
@@ -71,7 +70,13 @@ export function BacktestPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [hasResults, setHasResults] = useState(false);
   const [results, setResults] = useState(generateBacktestResults());
-  const [priceData, setPriceData] = useState(generatePriceData());
+  const [priceData, setPriceData] = useState<any[]>([]);
+
+  // Fetch historical Bitcoin price data
+  const { data: historicalPrices, isLoading: isPriceDataLoading } = useQuery<Array<{ timestamp: number; price: number }>>({
+    queryKey: ['/api/price/historical'],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   const strategies = [
     { value: 'ma-crossover', label: 'Moving Average Crossover' },
@@ -87,7 +92,12 @@ export function BacktestPanel() {
     // Simulate backtest running
     setTimeout(() => {
       setResults(generateBacktestResults());
-      setPriceData(generatePriceData());
+      
+      // Use real historical prices if available
+      if (historicalPrices && historicalPrices.length > 0) {
+        setPriceData(simulateTradingSignals(historicalPrices));
+      }
+      
       setHasResults(true);
       setIsRunning(false);
     }, 2000);
@@ -196,12 +206,12 @@ export function BacktestPanel() {
           <div className="flex gap-3">
             <Button 
               onClick={runBacktest}
-              disabled={isRunning || !startDate || !endDate}
+              disabled={isRunning || !startDate || !endDate || isPriceDataLoading}
               className="flex-1"
               data-testid="button-run-backtest"
             >
               <Play className="h-4 w-4 mr-2" />
-              {isRunning ? 'Running Backtest...' : 'Run Backtest'}
+              {isRunning ? 'Running Backtest...' : isPriceDataLoading ? 'Loading Price Data...' : 'Run Backtest'}
             </Button>
             {hasResults && (
               <Button 

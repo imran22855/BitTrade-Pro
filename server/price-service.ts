@@ -7,6 +7,11 @@ interface BitcoinPrice {
   timestamp: number;
 }
 
+interface HistoricalDataPoint {
+  timestamp: number;
+  price: number;
+}
+
 class PriceService {
   private currentPrice: BitcoinPrice | null = null;
   private updateInterval: NodeJS.Timeout | null = null;
@@ -69,6 +74,44 @@ class PriceService {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
+    }
+  }
+
+  async fetchHistoricalPrices(days: number = 90): Promise<HistoricalDataPoint[]> {
+    try {
+      const response = await fetch(
+        `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch historical prices');
+      }
+
+      const data = await response.json();
+      
+      // CoinGecko returns prices as array of [timestamp, price]
+      return data.prices.map((item: [number, number]) => ({
+        timestamp: item[0],
+        price: item[1],
+      }));
+    } catch (error) {
+      console.error('Error fetching historical Bitcoin prices:', error);
+      
+      // Return mock data if API fails
+      const mockData: HistoricalDataPoint[] = [];
+      let price = 65000;
+      const now = Date.now();
+      
+      for (let i = 0; i <= days; i++) {
+        const timestamp = now - ((days - i) * 86400000);
+        price = price + (Math.random() - 0.5) * 2000;
+        mockData.push({
+          timestamp,
+          price: Math.round(price),
+        });
+      }
+      
+      return mockData;
     }
   }
 }

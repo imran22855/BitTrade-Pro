@@ -25,6 +25,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(price);
   });
 
+  app.get("/api/price/historical", async (req, res) => {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string) : 90;
+      const historicalData = await priceService.fetchHistoricalPrices(days);
+      res.json(historicalData);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Portfolio endpoints
   app.get("/api/portfolio", async (req, res) => {
     // For demo purposes, using a default user
