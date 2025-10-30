@@ -143,11 +143,16 @@ class TradingBot {
     const priceDifference = currentPrice - initialPrice;
     const gridLevel = Math.round(priceDifference / gridInterval);
 
+    // Skip if we're at grid level 0 (too close to initial price, no grid crossed yet)
+    if (gridLevel === 0) {
+      return; // Wait until price moves at least one full grid interval
+    }
+
     // Calculate the target buy price for the nearest grid level
     let targetBuyPrice: number;
     
-    if (gridLevel >= 0) {
-      // Price is at or above initial - buy at grid intervals above
+    if (gridLevel > 0) {
+      // Price is above initial - buy at grid intervals above
       targetBuyPrice = initialPrice + (gridLevel * gridInterval);
     } else {
       // Price is below initial - buy at grid intervals below (dip buying)
@@ -156,11 +161,11 @@ class TradingBot {
 
     // Check if we already have an order at this level
     const existingOrder = gridOrders.find(order => 
-      Math.abs(order.buyPrice - targetBuyPrice) < 1 // within $1
+      Math.abs(order.buyPrice - targetBuyPrice) < gridInterval * 0.1 // within 10% of grid interval
     );
 
-    // Place buy order if we're at or near the grid level and don't have an existing order
-    if (!existingOrder && Math.abs(currentPrice - targetBuyPrice) < gridInterval / 2 && parseFloat(portfolio.usdBalance) > 100) {
+    // Place buy order only if we've crossed a grid level and don't have an existing order
+    if (!existingOrder && parseFloat(portfolio.usdBalance) > 100) {
       const usdToSpend = parseFloat(portfolio.usdBalance) * tradeSizePercent;
       const btcAmount = usdToSpend / currentPrice;
       const sellPrice = currentPrice * (1 + profitPercent / 100);
