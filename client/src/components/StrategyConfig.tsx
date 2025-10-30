@@ -127,6 +127,7 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
                   <Input
                     id="grid-interval"
                     type="number"
+                    min="1"
                     value={gridInterval}
                     onChange={(e) => setGridInterval(e.target.value)}
                     placeholder="2000"
@@ -169,6 +170,7 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
                   <Input
                     id="grid-lower-bound"
                     type="number"
+                    min="1"
                     value={gridLowerBound}
                     onChange={(e) => setGridLowerBound(e.target.value)}
                     placeholder="60000"
@@ -184,6 +186,7 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
                   <Input
                     id="grid-upper-bound"
                     type="number"
+                    min="1"
                     value={gridUpperBound}
                     onChange={(e) => setGridUpperBound(e.target.value)}
                     placeholder="120000"
@@ -199,6 +202,7 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
                   <Input
                     id="trad-grid-interval"
                     type="number"
+                    min="1"
                     value={gridInterval}
                     onChange={(e) => setGridInterval(e.target.value)}
                     placeholder="2000"

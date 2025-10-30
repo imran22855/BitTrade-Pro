@@ -132,6 +132,12 @@ class TradingBot {
     const tradeSizePercent = strategy.tradeSize / 100;
     const initialPrice = state.initialPrice!;
     const gridOrders = state.gridOrders || [];
+    
+    // Validate grid interval
+    if (gridInterval <= 0) {
+      console.log('Grid Trading: Invalid grid interval (must be positive), skipping');
+      return;
+    }
 
     // Calculate which grid level we're at (how many $2000 dips below initial)
     const priceDrop = initialPrice - currentPrice;
@@ -230,9 +236,14 @@ class TradingBot {
     const gridInterval = parseFloat(strategy.gridInterval || "2000");
     const tradeSizePercent = strategy.tradeSize / 100;
 
-    // Validate bounds
+    // Validate bounds and interval
     if (lowerBound <= 0 || upperBound <= 0 || lowerBound >= upperBound) {
       console.log('Traditional Grid: Invalid bounds, skipping');
+      return;
+    }
+    
+    if (gridInterval <= 0) {
+      console.log('Traditional Grid: Invalid grid interval (must be positive), skipping');
       return;
     }
 
