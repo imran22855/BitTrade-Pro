@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Dashboard from "@/pages/Dashboard";
 import BotConfig from "@/pages/BotConfig";
+import Settings from "@/pages/Settings";
+import Backtest from "@/pages/Backtest";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +18,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/bot" component={BotConfig} />
+      <Route path="/backtest" component={Backtest} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

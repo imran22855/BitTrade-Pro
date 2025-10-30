@@ -1,4 +1,4 @@
-import { Home, TrendingUp, Wallet, Settings, Bell, Bot } from "lucide-react";
+import { Home, TrendingUp, Wallet, Settings, Bell, Bot, BarChart3 } from "lucide-react";
 import { SiBitcoin } from "react-icons/si";
 import {
   Sidebar,
@@ -16,6 +16,7 @@ import { useLocation } from "wouter";
 const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Trading Bot", url: "/bot", icon: Bot },
+  { title: "Backtest", url: "/backtest", icon: BarChart3 },
   { title: "Portfolio", url: "/portfolio", icon: Wallet },
   { title: "Market Analysis", url: "/market", icon: TrendingUp },
   { title: "Alerts", url: "/alerts", icon: Bell },
