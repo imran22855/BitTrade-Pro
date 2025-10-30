@@ -47,12 +47,15 @@ export function PriceChart() {
           </div>
         </div>
 
-        <div className="h-96">
+        <div className="h-[32rem]">
           {isLoading ? (
             <Skeleton className="h-full w-full" />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData || []}>
+              <AreaChart 
+                data={chartData || []}
+                margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
+              >
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -70,6 +73,7 @@ export function PriceChart() {
                   style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}
                   domain={[(dataMin: number) => dataMin - 500, (dataMax: number) => dataMax + 500]}
                   tickFormatter={(value) => `$${value.toLocaleString()}`}
+                  width={80}
                 />
                 <Tooltip 
                   contentStyle={{
