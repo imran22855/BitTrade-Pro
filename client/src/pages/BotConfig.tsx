@@ -14,11 +14,8 @@ export default function BotConfig() {
 
   const createStrategyMutation = useMutation({
     mutationFn: async (config: any) => {
-      return await apiRequest('/api/strategies', {
-        method: 'POST',
-        body: JSON.stringify(config),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const result = await apiRequest('POST', '/api/strategies', config);
+      return await result.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/strategies'] });
@@ -28,11 +25,8 @@ export default function BotConfig() {
 
   const updateStrategyMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
-      return await apiRequest(`/api/strategies/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const result = await apiRequest('PATCH', `/api/strategies/${id}`, updates);
+      return await result.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/strategies'] });

@@ -55,13 +55,13 @@ export default function Settings() {
 
   const addCredentialMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/exchange-credentials', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      console.log('Making API request with data:', data);
+      const result = await apiRequest('POST', '/api/exchange-credentials', data);
+      console.log('API response:', result);
+      return await result.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation success, data:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/exchange-credentials'] });
       setNewApiKey('');
       setNewSecretKey('');
@@ -69,15 +69,20 @@ export default function Settings() {
       setIsDialogOpen(false);
       toast({ title: "Exchange Added", description: "Exchange credentials saved successfully." });
     },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+      toast({ 
+        title: "Error", 
+        description: `Failed to save credentials: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive" 
+      });
+    },
   });
 
   const updateCredentialMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
-      return await apiRequest(`/api/exchange-credentials/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const result = await apiRequest('PATCH', `/api/exchange-credentials/${id}`, updates);
+      return await result.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/exchange-credentials'] });
@@ -87,9 +92,8 @@ export default function Settings() {
 
   const deleteCredentialMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/exchange-credentials/${id}`, {
-        method: 'DELETE',
-      });
+      const result = await apiRequest('DELETE', `/api/exchange-credentials/${id}`);
+      return await result.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/exchange-credentials'] });
@@ -99,11 +103,8 @@ export default function Settings() {
 
   const updateNotificationMutation = useMutation({
     mutationFn: async (updates: any) => {
-      return await apiRequest('/api/notification-settings', {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const result = await apiRequest('PATCH', '/api/notification-settings', updates);
+      return await result.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notification-settings'] });
@@ -119,13 +120,15 @@ export default function Settings() {
   ];
 
   const handleAddCredential = () => {
-    addCredentialMutation.mutate({
+    const credentialData = {
       exchange: newExchange,
       apiKey: newApiKey,
       secretKey: newSecretKey,
       exchangeUrl: newExchangeUrl || null,
       isActive: false,
-    });
+    };
+    console.log('Saving credential:', credentialData);
+    addCredentialMutation.mutate(credentialData);
   };
 
   const toggleSecret = (id: string) => {

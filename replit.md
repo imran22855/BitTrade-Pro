@@ -1,0 +1,164 @@
+# BitTrader Pro - Automated Bitcoin Trading Platform
+
+## Overview
+
+BitTrader Pro is an automated Bitcoin trading application that provides real-time market data, algorithmic trading strategies, and portfolio management. The platform allows users to configure trading bots with various strategies, backtest them against historical data, and execute paper trading with a simulated $100,000 starting balance. The application is designed for both beginner and experienced traders, offering a professional financial application aesthetic inspired by industry-leading platforms like Coinbase, Binance, and Robinhood.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+
+**Framework & Build Tools**
+- React 18+ with TypeScript for type-safe component development
+- Vite as the build tool and development server
+- Wouter for client-side routing (lightweight alternative to React Router)
+- TanStack Query (React Query) for server state management and API data fetching
+
+**UI Component System**
+- shadcn/ui component library with Radix UI primitives for accessible, unstyled components
+- Tailwind CSS for styling with custom design tokens
+- Dark/light theme support with ThemeProvider context
+- Custom design system following financial application patterns (defined in design_guidelines.md)
+
+**Typography & Fonts**
+- Inter/Manrope for primary text
+- JetBrains Mono for numerical data, prices, and timestamps
+- Design emphasizes high-density data display without visual clutter
+
+**Component Structure**
+- Feature-based components: PriceDisplay, PortfolioOverview, TradingBotPanel, PriceChart, TransactionsTable
+- Configuration components: StrategyConfig, BacktestPanel, ExchangeCredentials, NotificationConfig
+- Reusable UI primitives from shadcn/ui in components/ui/
+- Layout components: AppSidebar for navigation, ThemeProvider for theme management
+
+**State Management Strategy**
+- React Query for server state with aggressive caching (staleTime: Infinity)
+- Local component state with React hooks for UI state
+- Context API for theme and user preferences
+- Optimistic updates via React Query mutations
+
+### Backend Architecture
+
+**Runtime & Framework**
+- Node.js with Express.js for REST API endpoints
+- TypeScript for type safety across the stack
+- ESM modules (type: "module" in package.json)
+
+**API Structure**
+The backend exposes RESTful endpoints organized by feature:
+- `/api/price/current` - Real-time Bitcoin price data
+- `/api/portfolio` - User portfolio management
+- `/api/strategies` - CRUD operations for trading strategies
+- `/api/transactions` - Transaction history
+- `/api/alerts` - Price alert management
+- `/api/exchange-credentials` - Exchange API credential storage
+- `/api/stats` - Aggregated trading statistics
+
+**Services Layer**
+- **PriceService**: Fetches Bitcoin price data from CoinGecko API with fallback to mock data, updates every 60 seconds
+- **TradingBot**: Executes trading strategies on 30-second intervals, performs paper trading simulations
+- **Storage**: Abstraction layer for data persistence with in-memory implementation
+
+**Trading Bot Logic**
+- Supports multiple strategy types: Moving Average Crossover, RSI, MACD, Bollinger Bands
+- Configurable risk parameters: stop loss, take profit, trade size percentage
+- Paper trading simulation with USD/BTC balance tracking
+- Strategy execution runs on intervals when activated
+
+### Data Storage Solutions
+
+**Database Technology**
+- PostgreSQL via Neon serverless database
+- Drizzle ORM for type-safe database queries and schema management
+- WebSocket connection pooling for serverless environment
+
+**Schema Design**
+The application defines the following core tables:
+- `users`: User authentication and profiles
+- `portfolio`: User balances (BTC and USD)
+- `trading_strategies`: Strategy configurations with parameters
+- `transactions`: Buy/sell transaction history
+- `price_alerts`: User-defined price notifications
+- `exchange_credentials`: Encrypted API keys for exchange integrations
+- `notification_settings`: User notification preferences
+
+**Data Access Pattern**
+- Repository pattern via storage interface (IStorage)
+- Type-safe schema validation using Drizzle Zod
+- Default "demo-user" for MVP without full authentication
+
+### Authentication and Authorization
+
+**Current Implementation**
+- Demo mode with hardcoded "demo-user" ID
+- Session-based approach prepared (connect-pg-simple for session storage)
+- No active authentication required for initial version
+
+**Future Considerations**
+- User registration and login system
+- Password hashing for security
+- Session management with PostgreSQL session store
+- Protected API routes with authentication middleware
+
+## External Dependencies
+
+### Third-Party APIs
+
+**CoinGecko API**
+- Purpose: Real-time Bitcoin price data, 24-hour statistics
+- Endpoint: `https://api.coingecko.com/api/v3/simple/price`
+- Data retrieved: Current price, 24h change, 24h high/low
+- Fallback: Mock data generation if API fails
+- Rate limiting: Managed via 60-second refresh intervals
+
+### Database & Infrastructure
+
+**Neon Serverless PostgreSQL**
+- Cloud-hosted PostgreSQL database
+- WebSocket-based connections for serverless compatibility
+- Connection pooling via @neondatabase/serverless package
+- Environment variable: `DATABASE_URL` (required)
+
+### UI Libraries & Components
+
+**Radix UI Primitives** (Comprehensive set)
+- Accordion, Alert Dialog, Avatar, Checkbox, Dialog, Dropdown Menu
+- Form controls, Popovers, Tooltips, Tabs, Navigation Menu
+- Provides accessible, unstyled components as foundation
+
+**Recharts**
+- Chart visualization library for price charts and backtest results
+- Line charts, area charts for trading data visualization
+
+**React Icons**
+- Social platform icons (Telegram, WhatsApp for notifications)
+- Lucide React for general UI icons
+
+**Additional Libraries**
+- date-fns: Date formatting and manipulation
+- cmdk: Command palette component
+- class-variance-authority: Type-safe variant styling
+- react-hook-form with Zod resolvers: Form validation
+
+### Development Tools
+
+**Replit-Specific Plugins**
+- @replit/vite-plugin-runtime-error-modal: Development error overlay
+- @replit/vite-plugin-cartographer: Code mapping
+- @replit/vite-plugin-dev-banner: Development environment indicator
+
+### Planned Integrations
+
+**Exchange APIs** (Configured but not actively used)
+- Binance, Coinbase Pro, Kraken
+- Stored credentials schema exists for future live trading
+
+**Notification Services** (UI prepared, not implemented)
+- Telegram Bot API
+- WhatsApp integration
+- Twilio SMS
+- Configuration UI exists in Settings page
