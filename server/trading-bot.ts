@@ -16,7 +16,13 @@ class TradingBot {
 
     // Run strategy logic every 30 seconds
     const interval = setInterval(async () => {
-      await this.executeStrategy(strategy);
+      // Re-fetch strategy to get latest state
+      const latestStrategy = await storage.getStrategy(strategyId);
+      if (!latestStrategy || !latestStrategy.isActive) {
+        this.stopStrategy(strategyId);
+        return;
+      }
+      await this.executeStrategy(latestStrategy);
     }, 30000);
 
     this.runningStrategies.set(strategyId, interval);

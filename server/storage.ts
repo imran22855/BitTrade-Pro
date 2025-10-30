@@ -144,6 +144,9 @@ export class MemStorage implements IStorage {
       tradeSize: strategy.tradeSize ?? 25,
       stopLoss: strategy.stopLoss ?? "2.5",
       takeProfit: strategy.takeProfit ?? "5.0",
+      gridInterval: strategy.gridInterval ?? "2000",
+      gridProfitPercent: strategy.gridProfitPercent ?? "5.0",
+      strategyState: strategy.strategyState ?? null,
       createdAt: new Date()
     };
     this.strategies.set(id, newStrategy);

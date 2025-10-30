@@ -34,15 +34,15 @@ export function StrategyConfig({ onSave, onStart }: StrategyConfigProps) {
       name: strategy === 'grid-trading' ? 'Grid Trading Bot' : 'Trading Bot',
       type: strategy,
       riskTolerance: riskTolerance[0],
-      stopLoss: parseFloat(stopLoss),
-      takeProfit: parseFloat(takeProfit),
+      stopLoss: stopLoss, // Keep as string for decimal field
+      takeProfit: takeProfit, // Keep as string for decimal field
       tradeSize: tradeSize[0]
     };
     
     // Add grid trading specific fields
     if (strategy === 'grid-trading') {
-      config.gridInterval = parseFloat(gridInterval);
-      config.gridProfitPercent = parseFloat(gridProfitPercent);
+      config.gridInterval = gridInterval; // Keep as string for decimal field
+      config.gridProfitPercent = gridProfitPercent; // Keep as string for decimal field
     }
     
     console.log('Saving strategy config:', config);
