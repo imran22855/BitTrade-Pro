@@ -20,9 +20,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!price) {
       await priceService.fetchPrice();
       const newPrice = priceService.getCurrentPrice();
-      return res.json(newPrice);
+      return res.json({ ...newPrice, exchange: priceService.getActiveExchange() });
     }
-    res.json(price);
+    res.json({ ...price, exchange: priceService.getActiveExchange() });
   });
 
   app.get("/api/price/historical", async (req, res) => {
@@ -30,6 +30,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const days = req.query.days ? parseInt(req.query.days as string) : 90;
       const historicalData = await priceService.fetchHistoricalPrices(days);
       res.json(historicalData);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/price/chart", async (req, res) => {
+    try {
+      const hours = req.query.hours ? parseInt(req.query.hours as string) : 24;
+      const historicalData = await priceService.fetchHistoricalPrices(Math.ceil(hours / 24));
+      
+      // Sample the data based on timeframe
+      const now = Date.now();
+      const cutoffTime = now - (hours * 3600000);
+      const filtered = historicalData.filter(d => d.timestamp >= cutoffTime);
+      
+      // Format for chart
+      const chartData = filtered.map(d => ({
+        time: new Date(d.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        price: d.price,
+        timestamp: d.timestamp
+      }));
+      
+      res.json(chartData);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

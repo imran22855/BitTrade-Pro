@@ -2,30 +2,28 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const timeframes = ['1H', '4H', '1D', '1W', '1M', '1Y'];
-
-// Mock data for demonstration
-const generateMockData = (points: number) => {
-  const data = [];
-  let basePrice = 67000;
-  const now = Date.now();
-  
-  for (let i = points; i >= 0; i--) {
-    const timestamp = now - (i * 3600000);
-    basePrice = basePrice + (Math.random() - 0.5) * 800;
-    data.push({
-      time: new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      price: Math.round(basePrice * 100) / 100,
-      volume: Math.random() * 1000000
-    });
-  }
-  return data;
-};
+const timeframes = [
+  { label: '1H', hours: 1 },
+  { label: '4H', hours: 4 },
+  { label: '1D', hours: 24 },
+  { label: '1W', hours: 168 },
+  { label: '1M', hours: 720 },
+  { label: '1Y', hours: 8760 },
+];
 
 export function PriceChart() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
-  const [chartData] = useState(generateMockData(24)); // todo: remove mock functionality
+  
+  // Get hours for the selected timeframe
+  const hours = timeframes.find(tf => tf.label === selectedTimeframe)?.hours || 24;
+  
+  const { data: chartData, isLoading } = useQuery({
+    queryKey: ['/api/price/chart', hours],
+    refetchInterval: 60000, // Refresh every minute
+  });
 
   return (
     <Card className="p-6">
@@ -35,58 +33,61 @@ export function PriceChart() {
           <div className="flex gap-2">
             {timeframes.map((tf) => (
               <Button
-                key={tf}
-                variant={selectedTimeframe === tf ? "default" : "ghost"}
+                key={tf.label}
+                variant={selectedTimeframe === tf.label ? "default" : "ghost"}
                 size="sm"
                 onClick={() => {
-                  setSelectedTimeframe(tf);
-                  console.log('Timeframe selected:', tf);
+                  setSelectedTimeframe(tf.label);
                 }}
-                data-testid={`button-timeframe-${tf.toLowerCase()}`}
+                data-testid={`button-timeframe-${tf.label.toLowerCase()}`}
               >
-                {tf}
+                {tf.label}
               </Button>
             ))}
           </div>
         </div>
 
         <div className="h-96">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="time" 
-                stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: '12px' }}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}
-                domain={['dataMin - 500', 'dataMax + 500']}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '0.5rem',
-                  fontFamily: 'var(--font-mono)'
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="price" 
-                stroke="hsl(var(--primary))" 
-                strokeWidth={2}
-                fill="url(#colorPrice)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {isLoading ? (
+            <Skeleton className="h-full w-full" />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData || []}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="time" 
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  stroke="hsl(var(--muted-foreground))"
+                  style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}
+                  domain={['dataMin - 500', 'dataMax + 500']}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--popover))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '0.5rem',
+                    fontFamily: 'var(--font-mono)'
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2}
+                  fill="url(#colorPrice)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
     </Card>
