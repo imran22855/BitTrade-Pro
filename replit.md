@@ -2,7 +2,7 @@
 
 ## Overview
 
-BitTrader Pro is an automated Bitcoin trading application that provides real-time market data, algorithmic trading strategies, and portfolio management. The platform allows users to configure trading bots with various strategies, backtest them against historical data, and execute paper trading with a simulated $100,000 starting balance. The application is designed for both beginner and experienced traders, offering a professional financial application aesthetic inspired by industry-leading platforms like Coinbase, Binance, and Robinhood.
+BitTrader Pro is an automated Bitcoin trading application that provides real-time market data, algorithmic trading strategies, and portfolio management. The platform allows users to configure trading bots with various strategies (including Grid Trading, Moving Average Crossover, RSI, MACD, and Bollinger Bands), backtest them against historical data, and execute paper trading with a simulated $100,000 starting balance. The application is designed for both beginner and experienced traders, offering a professional financial application aesthetic inspired by industry-leading platforms like Coinbase, Binance, and Robinhood.
 
 ## User Preferences
 
@@ -64,10 +64,16 @@ The backend exposes RESTful endpoints organized by feature:
 - **Storage**: Abstraction layer for data persistence with in-memory implementation
 
 **Trading Bot Logic**
-- Supports multiple strategy types: Moving Average Crossover, RSI, MACD, Bollinger Bands
+- Supports multiple strategy types: Grid Trading, Moving Average Crossover, RSI, MACD, Bollinger Bands
+- **Grid Trading Strategy**: Automatically buys Bitcoin at every $X price dip from initial price and sells at Y% profit
+  - Configurable grid interval (default: $2000)
+  - Configurable profit target (default: 5%)
+  - Tracks initial price and maintains open grid orders in strategyState
+  - Each buy creates a paired sell order for automated profit-taking
 - Configurable risk parameters: stop loss, take profit, trade size percentage
 - Paper trading simulation with USD/BTC balance tracking
-- Strategy execution runs on intervals when activated
+- Strategy execution runs on 30-second intervals when activated
+- Re-fetches strategy state on each interval to ensure fresh data
 
 ### Data Storage Solutions
 
