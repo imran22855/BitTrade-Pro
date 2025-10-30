@@ -12,7 +12,24 @@ class TradingBot {
     // Don't start if already running
     if (this.runningStrategies.has(strategyId)) return;
 
+    const currentPrice = priceService.getCurrentPrice();
+    
     console.log(`Starting trading bot for strategy: ${strategy.name}`);
+
+    // Log strategy start event
+    await storage.createStrategyEvent({
+      userId: strategy.userId,
+      strategyId: strategy.id,
+      eventType: 'started',
+      eventData: {
+        initialPrice: currentPrice?.price,
+        strategyType: strategy.type,
+        strategyName: strategy.name,
+        gridInterval: strategy.gridInterval ? parseFloat(strategy.gridInterval) : undefined,
+        profitPercent: strategy.gridProfitPercent ? parseFloat(strategy.gridProfitPercent) : parseFloat(strategy.takeProfit),
+        tradeSize: strategy.tradeSize,
+      },
+    });
 
     // Run strategy logic every 30 seconds
     const interval = setInterval(async () => {
@@ -33,7 +50,25 @@ class TradingBot {
     if (interval) {
       clearInterval(interval);
       this.runningStrategies.delete(strategyId);
+      
+      const strategy = await storage.getStrategy(strategyId);
+      const currentPrice = priceService.getCurrentPrice();
+      
       console.log(`Stopped trading bot for strategy: ${strategyId}`);
+
+      // Log strategy stop event
+      if (strategy) {
+        await storage.createStrategyEvent({
+          userId: strategy.userId,
+          strategyId: strategy.id,
+          eventType: 'stopped',
+          eventData: {
+            currentPrice: currentPrice?.price,
+            strategyType: strategy.type,
+            strategyName: strategy.name,
+          },
+        });
+      }
     }
   }
 
