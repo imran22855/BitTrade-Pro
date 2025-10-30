@@ -30,7 +30,7 @@ Preferred communication style: Simple, everyday language.
 - Design emphasizes high-density data display without visual clutter
 
 **Component Structure**
-- Feature-based components: PriceDisplay, PortfolioOverview, TradingBotPanel, PriceChart, TransactionsTable
+- Feature-based components: PriceDisplay, PortfolioOverview, TradingBotPanel, PriceChart, TransactionsTable, StrategyEvents
 - Configuration components: StrategyConfig, BacktestPanel, ExchangeCredentials, NotificationConfig
 - Reusable UI primitives from shadcn/ui in components/ui/
 - Layout components: AppSidebar for navigation, ThemeProvider for theme management
@@ -54,6 +54,7 @@ The backend exposes RESTful endpoints organized by feature:
 - `/api/price/chart` - Real-time chart data with configurable timeframes
 - `/api/portfolio` - User portfolio management
 - `/api/strategies` - CRUD operations for trading strategies
+- `/api/strategies/:id/events` - Strategy event log (start/stop events with timestamps and configuration details)
 - `/api/transactions` - Transaction history
 - `/api/alerts` - Price alert management
 - `/api/exchange-credentials` - Exchange API credential storage
@@ -99,6 +100,7 @@ The application defines the following core tables:
 - `users`: User authentication and profiles
 - `portfolio`: User balances (BTC and USD)
 - `trading_strategies`: Strategy configurations with parameters
+- `strategy_events`: Strategy start/stop event log with timestamps, initial/final prices, and configuration details (grid interval, profit %, trade size)
 - `transactions`: Buy/sell transaction history
 - `price_alerts`: User-defined price notifications
 - `exchange_credentials`: Encrypted API keys for exchange integrations
