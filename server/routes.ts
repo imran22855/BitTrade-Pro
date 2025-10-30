@@ -144,6 +144,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
+  // Strategy events endpoints
+  app.get("/api/strategies/:id/events", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const events = await storage.getStrategyEvents(id, limit);
+      res.json(events);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   // Transaction endpoints
   app.get("/api/transactions", isAuthenticated, async (req: any, res) => {
     const userId = req.user.claims.sub;
