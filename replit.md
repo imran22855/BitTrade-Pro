@@ -2,7 +2,7 @@
 
 ## Overview
 
-BitTrader Pro is an automated Bitcoin trading application that provides real-time market data, algorithmic trading strategies, and portfolio management. The platform allows users to configure trading bots with various strategies (including Grid Trading, Moving Average Crossover, RSI, MACD, and Bollinger Bands), backtest them against historical data, and execute paper trading with a simulated $100,000 starting balance. The application is designed for both beginner and experienced traders, offering a professional financial application aesthetic inspired by industry-leading platforms like Coinbase, Binance, and Robinhood.
+BitTrader Pro is an automated Bitcoin trading application that provides real-time market data, algorithmic trading strategies, and portfolio management. The platform allows users to configure trading bots with various strategies (including Grid Trading, Moving Average Crossover, RSI, MACD, and Bollinger Bands), backtest them against historical data, and execute paper trading with a simulated $100,000 starting balance. The application features real-time Bitcoin price charts on the Dashboard and supports multiple exchange integrations (Binance, Bitget, Coinbase, Kraken, Bybit) for fetching live price data. The system automatically uses exchange APIs when credentials are configured, falling back to CoinGecko when no exchange is active.
 
 ## User Preferences
 
@@ -51,6 +51,7 @@ Preferred communication style: Simple, everyday language.
 **API Structure**
 The backend exposes RESTful endpoints organized by feature:
 - `/api/price/current` - Real-time Bitcoin price data
+- `/api/price/chart` - Real-time chart data with configurable timeframes
 - `/api/portfolio` - User portfolio management
 - `/api/strategies` - CRUD operations for trading strategies
 - `/api/transactions` - Transaction history
@@ -114,12 +115,26 @@ The application defines the following core tables:
 
 ### Third-Party APIs
 
-**CoinGecko API**
-- Purpose: Real-time Bitcoin price data, 24-hour statistics
-- Endpoint: `https://api.coingecko.com/api/v3/simple/price`
-- Data retrieved: Current price, 24h change, 24h high/low
-- Fallback: Mock data generation if API fails
-- Rate limiting: Managed via 60-second refresh intervals
+**Price Data APIs**
+- **Exchange APIs** (Primary when credentials configured):
+  - Binance: `https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT`
+  - Bitget: `https://api.bitget.com/api/v2/spot/market/tickers?symbol=BTCUSDT`
+  - Coinbase: `https://api.exchange.coinbase.com/products/BTC-USD/stats`
+  - Kraken: `https://api.kraken.com/0/public/Ticker?pair=XBTUSD`
+  - Bybit: `https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT`
+- **CoinGecko API** (Fallback):
+  - Purpose: Real-time Bitcoin price data, 24-hour statistics
+  - Endpoint: `https://api.coingecko.com/api/v3/simple/price`
+  - Data retrieved: Current price, 24h change, 24h high/low
+  - Fallback: Mock data generation if API fails
+  - Rate limiting: Managed via 60-second refresh intervals
+
+**Price Service Behavior**
+- On startup and every 60 seconds, checks for active exchange credentials
+- If credentials exist and are active, fetches from the configured exchange API
+- If no active credentials, falls back to CoinGecko API
+- All exchange responses are normalized to common BitcoinPrice interface
+- Supports custom API URLs for each exchange
 
 ### Database & Infrastructure
 

@@ -21,7 +21,7 @@ export function PriceChart() {
   const hours = timeframes.find(tf => tf.label === selectedTimeframe)?.hours || 24;
   
   const { data: chartData, isLoading } = useQuery({
-    queryKey: ['/api/price/chart', hours],
+    queryKey: [`/api/price/chart?hours=${hours}`],
     refetchInterval: 60000, // Refresh every minute
   });
 
