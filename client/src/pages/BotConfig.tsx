@@ -1,4 +1,5 @@
 import { StrategyConfig } from "@/components/StrategyConfig";
+import { StrategyEvents } from "@/components/StrategyEvents";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -108,6 +109,8 @@ export default function BotConfig() {
     );
   }
 
+  const existingStrategy = strategies && strategies.length > 0 ? strategies[0] : null;
+
   return (
     <div className="max-w-5xl">
       <div className="mb-6">
@@ -117,7 +120,10 @@ export default function BotConfig() {
         </p>
       </div>
       
-      <StrategyConfig onSave={handleSave} onStart={handleStart} />
+      <div className="space-y-6">
+        <StrategyConfig onSave={handleSave} onStart={handleStart} />
+        <StrategyEvents strategyId={existingStrategy?.id || null} />
+      </div>
     </div>
   );
 }

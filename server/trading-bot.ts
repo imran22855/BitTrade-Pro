@@ -56,7 +56,7 @@ class TradingBot {
       
       console.log(`Stopped trading bot for strategy: ${strategyId}`);
 
-      // Log strategy stop event
+      // Log strategy stop event with complete metadata
       if (strategy) {
         await storage.createStrategyEvent({
           userId: strategy.userId,
@@ -66,6 +66,9 @@ class TradingBot {
             currentPrice: currentPrice?.price,
             strategyType: strategy.type,
             strategyName: strategy.name,
+            gridInterval: strategy.gridInterval ? parseFloat(strategy.gridInterval) : undefined,
+            profitPercent: strategy.gridProfitPercent ? parseFloat(strategy.gridProfitPercent) : parseFloat(strategy.takeProfit),
+            tradeSize: strategy.tradeSize,
           },
         });
       }
