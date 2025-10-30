@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Play, Download, CalendarIcon, TrendingUp, DollarSign, Activity } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Scatter } from "recharts";
 
 // Mock backtest data - todo: remove mock functionality
 const generateBacktestResults = () => {
@@ -34,6 +34,35 @@ const generateBacktestResults = () => {
   return data;
 };
 
+// Generate price data with buy/sell signals
+const generatePriceData = () => {
+  const data = [];
+  let price = 65000;
+  const now = Date.now();
+  
+  for (let i = 0; i <= 30; i++) {
+    const timestamp = now - ((30 - i) * 86400000);
+    // Simulate price movement
+    price = price + (Math.random() - 0.5) * 2000;
+    
+    const dataPoint: any = {
+      date: format(new Date(timestamp), 'MM/dd'),
+      price: Math.round(price),
+    };
+    
+    // Add buy/sell signals randomly (simulate strategy triggers)
+    const rand = Math.random();
+    if (rand > 0.85) {
+      dataPoint.buy = Math.round(price);
+    } else if (rand < 0.15) {
+      dataPoint.sell = Math.round(price);
+    }
+    
+    data.push(dataPoint);
+  }
+  return data;
+};
+
 export function BacktestPanel() {
   const [strategy, setStrategy] = useState('ma-crossover');
   const [startDate, setStartDate] = useState<Date>();
@@ -42,6 +71,7 @@ export function BacktestPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [hasResults, setHasResults] = useState(false);
   const [results, setResults] = useState(generateBacktestResults());
+  const [priceData, setPriceData] = useState(generatePriceData());
 
   const strategies = [
     { value: 'ma-crossover', label: 'Moving Average Crossover' },
@@ -57,6 +87,7 @@ export function BacktestPanel() {
     // Simulate backtest running
     setTimeout(() => {
       setResults(generateBacktestResults());
+      setPriceData(generatePriceData());
       setHasResults(true);
       setIsRunning(false);
     }, 2000);
@@ -288,6 +319,81 @@ export function BacktestPanel() {
                     />
                   </LineChart>
                 </ResponsiveContainer>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">Buy/Sell Order Placement</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Visualize when the strategy triggered buy (green) and sell (red) orders
+                </p>
+              </div>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={priceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="hsl(var(--muted-foreground))"
+                      style={{ fontSize: '12px' }}
+                    />
+                    <YAxis 
+                      stroke="hsl(var(--muted-foreground))"
+                      style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}
+                      domain={['dataMin - 1000', 'dataMax + 1000']}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '0.5rem',
+                        fontFamily: 'var(--font-mono)'
+                      }}
+                      formatter={(value: any, name: string) => {
+                        if (name === 'price') return [`$${value.toLocaleString()}`, 'BTC Price'];
+                        if (name === 'buy') return [`$${value.toLocaleString()}`, 'Buy Order'];
+                        if (name === 'sell') return [`$${value.toLocaleString()}`, 'Sell Order'];
+                        return [value, name];
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="price" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      name="BTC Price"
+                      dot={false}
+                    />
+                    <Scatter 
+                      dataKey="buy" 
+                      fill="hsl(var(--chart-3))" 
+                      name="Buy Signal"
+                      shape="circle"
+                      r={6}
+                    />
+                    <Scatter 
+                      dataKey="sell" 
+                      fill="hsl(var(--destructive))" 
+                      name="Sell Signal"
+                      shape="circle"
+                      r={6}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-chart-3"></div>
+                  <span className="text-muted-foreground">Buy Orders</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-destructive"></div>
+                  <span className="text-muted-foreground">Sell Orders</span>
+                </div>
               </div>
             </div>
           </Card>
