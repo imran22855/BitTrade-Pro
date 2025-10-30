@@ -235,6 +235,7 @@ export class MemStorage implements IStorage {
       exchange: credential.exchange,
       apiKey: credential.apiKey,
       secretKey: credential.secretKey,
+      exchangeUrl: credential.exchangeUrl ?? null,
       isActive: credential.isActive ?? false,
       createdAt: new Date()
     };

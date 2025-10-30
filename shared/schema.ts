@@ -58,6 +58,7 @@ export const exchangeCredentials = pgTable("exchange_credentials", {
   exchange: text("exchange").notNull(), // 'binance', 'bitget', etc.
   apiKey: text("api_key").notNull(),
   secretKey: text("secret_key").notNull(),
+  exchangeUrl: text("exchange_url"), // Custom URL like "https://testnet.binance.vision/api"
   isActive: boolean("is_active").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

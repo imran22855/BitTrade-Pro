@@ -37,6 +37,7 @@ export default function Settings() {
   const [newExchange, setNewExchange] = useState('binance');
   const [newApiKey, setNewApiKey] = useState('');
   const [newSecretKey, setNewSecretKey] = useState('');
+  const [newExchangeUrl, setNewExchangeUrl] = useState('');
 
   // Notification state
   const [telegramBotToken, setTelegramBotToken] = useState('');
@@ -64,6 +65,7 @@ export default function Settings() {
       queryClient.invalidateQueries({ queryKey: ['/api/exchange-credentials'] });
       setNewApiKey('');
       setNewSecretKey('');
+      setNewExchangeUrl('');
       setIsDialogOpen(false);
       toast({ title: "Exchange Added", description: "Exchange credentials saved successfully." });
     },
@@ -121,6 +123,7 @@ export default function Settings() {
       exchange: newExchange,
       apiKey: newApiKey,
       secretKey: newSecretKey,
+      exchangeUrl: newExchangeUrl || null,
       isActive: false,
     });
   };
@@ -230,6 +233,19 @@ export default function Settings() {
                           </Select>
                         </div>
                         <div className="space-y-2">
+                          <Label htmlFor="exchange-url">Custom Exchange URL (Optional)</Label>
+                          <Input
+                            id="exchange-url"
+                            value={newExchangeUrl}
+                            onChange={(e) => setNewExchangeUrl(e.target.value)}
+                            placeholder="e.g., https://testnet.binance.vision/api"
+                            data-testid="input-exchange-url"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Leave blank to use default production URL. Use testnet or custom endpoints for development.
+                          </p>
+                        </div>
+                        <div className="space-y-2">
                           <Label htmlFor="api-key">API Key</Label>
                           <Input
                             id="api-key"
@@ -313,33 +329,45 @@ export default function Settings() {
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-xs text-muted-foreground">API Key</Label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <code className="text-sm font-mono bg-muted px-2 py-1 rounded flex-1 truncate">
-                                  {cred.apiKey}
-                                </code>
+                          <div className="space-y-3">
+                            {cred.exchangeUrl && (
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Custom Exchange URL</Label>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <code className="text-sm font-mono bg-muted px-2 py-1 rounded flex-1 truncate">
+                                    {cred.exchangeUrl}
+                                  </code>
+                                </div>
                               </div>
-                            </div>
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Secret Key</Label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <code className="text-sm font-mono bg-muted px-2 py-1 rounded flex-1 truncate">
-                                  {showSecret[cred.id] ? cred.secretKey : '••••••••••••••••••••'}
-                                </code>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => toggleSecret(cred.id)}
-                                  data-testid={`button-toggle-secret-${cred.id}`}
-                                >
-                                  {showSecret[cred.id] ? (
-                                    <EyeOff className="h-4 w-4" />
-                                  ) : (
-                                    <Eye className="h-4 w-4" />
-                                  )}
-                                </Button>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-xs text-muted-foreground">API Key</Label>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <code className="text-sm font-mono bg-muted px-2 py-1 rounded flex-1 truncate">
+                                    {cred.apiKey}
+                                  </code>
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Secret Key</Label>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <code className="text-sm font-mono bg-muted px-2 py-1 rounded flex-1 truncate">
+                                    {showSecret[cred.id] ? cred.secretKey : '••••••••••••••••••••'}
+                                  </code>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => toggleSecret(cred.id)}
+                                    data-testid={`button-toggle-secret-${cred.id}`}
+                                  >
+                                    {showSecret[cred.id] ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </div>
