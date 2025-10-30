@@ -7,6 +7,7 @@ import {
   type ExchangeCredential, type InsertExchangeCredential,
   type NotificationSettings, type InsertNotificationSettings,
   type StrategyEvent, type InsertStrategyEvent,
+  users,
   exchangeCredentials
 } from "@shared/schema";
 import { randomUUID } from "crypto";
@@ -78,43 +79,49 @@ export class MemStorage implements IStorage {
     this.strategyEvents = new Map();
   }
 
-  // User methods (Replit Auth)
+  // User methods (Replit Auth) - DATABASE-BACKED
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+    return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    // If user exists, update it
-    const existingUser = this.users.get(userData.id!);
-    if (existingUser) {
-      const updated: User = {
-        ...existingUser,
-        email: userData.email ?? existingUser.email,
-        firstName: userData.firstName ?? existingUser.firstName,
-        lastName: userData.lastName ?? existingUser.lastName,
-        profileImageUrl: userData.profileImageUrl ?? existingUser.profileImageUrl,
-        updatedAt: new Date(),
-      };
-      this.users.set(updated.id, updated);
+    // Try to update existing user first
+    const [updated] = await db
+      .update(users)
+      .set({
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        profileImageUrl: userData.profileImageUrl,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userData.id!))
+      .returning();
+    
+    if (updated) {
       return updated;
     }
-
-    // Create new user
-    const id = userData.id || randomUUID();
-    const user: User = {
-      id,
-      email: userData.email ?? null,
-      firstName: userData.firstName ?? null,
-      lastName: userData.lastName ?? null,
-      profileImageUrl: userData.profileImageUrl ?? null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.users.set(id, user);
+    
+    // User doesn't exist, create new one
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: userData.id!,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        profileImageUrl: userData.profileImageUrl,
+      })
+      .returning();
     
     // Create default portfolio for new user
     await this.createPortfolio({
-      userId: id,
+      userId: user.id,
       btcBalance: "0",
       usdBalance: "100000",
     });
