@@ -68,7 +68,8 @@ export function PriceChart() {
                 <YAxis 
                   stroke="hsl(var(--muted-foreground))"
                   style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}
-                  domain={['dataMin - 500', 'dataMax + 500']}
+                  domain={[(dataMin: number) => dataMin - 500, (dataMax: number) => dataMax + 500]}
+                  tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
                 <Tooltip 
                   contentStyle={{
