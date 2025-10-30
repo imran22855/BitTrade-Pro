@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { priceService } from "./price-service";
 import { tradingBot } from "./trading-bot";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
   insertStrategySchema, 
   insertTransactionSchema,
@@ -11,6 +12,21 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // Start price updates
   priceService.startPriceUpdates();
 
@@ -59,10 +75,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Portfolio endpoints
-  app.get("/api/portfolio", async (req, res) => {
-    // For demo purposes, using a default user
-    // In production, this would use authenticated user
-    const userId = "demo-user";
+  app.get("/api/portfolio", isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
     
     let portfolio = await storage.getPortfolio(userId);
     if (!portfolio) {
@@ -77,15 +91,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Strategy endpoints
-  app.get("/api/strategies", async (req, res) => {
-    const userId = "demo-user";
+  app.get("/api/strategies", isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
     const strategies = await storage.getStrategies(userId);
     res.json(strategies);
   });
 
-  app.post("/api/strategies", async (req, res) => {
+  app.post("/api/strategies", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = "demo-user";
+      const userId = req.user.claims.sub;
       const validated = insertStrategySchema.parse({ ...req.body, userId });
       const strategy = await storage.createStrategy(validated);
       res.json(strategy);
@@ -94,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/strategies/:id", async (req, res) => {
+  app.patch("/api/strategies/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const updated = await storage.updateStrategy(id, req.body);
@@ -116,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/strategies/:id", async (req, res) => {
+  app.delete("/api/strategies/:id", isAuthenticated, async (req: any, res) => {
     const { id } = req.params;
     
     // Stop the bot if running
@@ -131,16 +145,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Transaction endpoints
-  app.get("/api/transactions", async (req, res) => {
-    const userId = "demo-user";
+  app.get("/api/transactions", isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
     const transactions = await storage.getTransactions(userId, limit);
     res.json(transactions);
   });
 
-  app.post("/api/transactions", async (req, res) => {
+  app.post("/api/transactions", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = "demo-user";
+      const userId = req.user.claims.sub;
       const validated = insertTransactionSchema.parse({ ...req.body, userId });
       const transaction = await storage.createTransaction(validated);
       
@@ -170,15 +184,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Alert endpoints
-  app.get("/api/alerts", async (req, res) => {
-    const userId = "demo-user";
+  app.get("/api/alerts", isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
     const alerts = await storage.getAlerts(userId);
     res.json(alerts);
   });
 
-  app.post("/api/alerts", async (req, res) => {
+  app.post("/api/alerts", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = "demo-user";
+      const userId = req.user.claims.sub;
       const validated = insertPriceAlertSchema.parse({ ...req.body, userId });
       const alert = await storage.createAlert(validated);
       res.json(alert);
@@ -187,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/alerts/:id", async (req, res) => {
+  app.patch("/api/alerts/:id", isAuthenticated, async (req: any, res) => {
     const { id } = req.params;
     const updated = await storage.updateAlert(id, req.body);
     
@@ -198,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(updated);
   });
 
-  app.delete("/api/alerts/:id", async (req, res) => {
+  app.delete("/api/alerts/:id", isAuthenticated, async (req: any, res) => {
     const { id } = req.params;
     const deleted = await storage.deleteAlert(id);
     
@@ -210,15 +224,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Exchange credentials endpoints
-  app.get("/api/exchange-credentials", async (req, res) => {
-    const userId = "demo-user";
+  app.get("/api/exchange-credentials", isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
     const credentials = await storage.getExchangeCredentials(userId);
     res.json(credentials);
   });
 
-  app.post("/api/exchange-credentials", async (req, res) => {
+  app.post("/api/exchange-credentials", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = "demo-user";
+      const userId = req.user.claims.sub;
       const validated = insertExchangeCredentialSchema.parse({ ...req.body, userId });
       const credential = await storage.createExchangeCredential(validated);
       res.json(credential);
@@ -227,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/exchange-credentials/:id", async (req, res) => {
+  app.patch("/api/exchange-credentials/:id", isAuthenticated, async (req: any, res) => {
     const { id } = req.params;
     const updated = await storage.updateExchangeCredential(id, req.body);
     
@@ -238,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(updated);
   });
 
-  app.delete("/api/exchange-credentials/:id", async (req, res) => {
+  app.delete("/api/exchange-credentials/:id", isAuthenticated, async (req: any, res) => {
     const { id } = req.params;
     const deleted = await storage.deleteExchangeCredential(id);
     
@@ -250,8 +264,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification settings endpoints
-  app.get("/api/notification-settings", async (req, res) => {
-    const userId = "demo-user";
+  app.get("/api/notification-settings", isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
     let settings = await storage.getNotificationSettings(userId);
     
     if (!settings) {
@@ -272,9 +286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(settings);
   });
 
-  app.patch("/api/notification-settings", async (req, res) => {
+  app.patch("/api/notification-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = "demo-user";
+      const userId = req.user.claims.sub;
       const updated = await storage.updateNotificationSettings(userId, req.body);
       
       if (!updated) {
@@ -288,8 +302,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Statistics endpoint
-  app.get("/api/stats", async (req, res) => {
-    const userId = "demo-user";
+  app.get("/api/stats", isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
     const portfolio = await storage.getPortfolio(userId);
     const transactions = await storage.getTransactions(userId);
     const strategies = await storage.getStrategies(userId);

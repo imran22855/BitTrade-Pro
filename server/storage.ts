@@ -1,5 +1,5 @@
 import { 
-  type User, type InsertUser,
+  type User, type InsertUser, type UpsertUser,
   type TradingStrategy, type InsertStrategy,
   type Transaction, type InsertTransaction,
   type Portfolio, type InsertPortfolio,
@@ -10,10 +10,9 @@ import {
 import { randomUUID } from "crypto";
 
 export interface IStorage {
-  // User management
+  // User management (Replit Auth)
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
 
   // Portfolio
   getPortfolio(userId: string): Promise<Portfolio | undefined>;
@@ -68,21 +67,41 @@ export class MemStorage implements IStorage {
     this.notificationSettings = new Map();
   }
 
-  // User methods
+  // User methods (Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find((user) => user.username === username);
-  }
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    // If user exists, update it
+    const existingUser = this.users.get(userData.id!);
+    if (existingUser) {
+      const updated: User = {
+        ...existingUser,
+        email: userData.email ?? existingUser.email,
+        firstName: userData.firstName ?? existingUser.firstName,
+        lastName: userData.lastName ?? existingUser.lastName,
+        profileImageUrl: userData.profileImageUrl ?? existingUser.profileImageUrl,
+        updatedAt: new Date(),
+      };
+      this.users.set(updated.id, updated);
+      return updated;
+    }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    // Create new user
+    const id = userData.id || randomUUID();
+    const user: User = {
+      id,
+      email: userData.email ?? null,
+      firstName: userData.firstName ?? null,
+      lastName: userData.lastName ?? null,
+      profileImageUrl: userData.profileImageUrl ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.users.set(id, user);
     
-    // Create default portfolio
+    // Create default portfolio for new user
     await this.createPortfolio({
       userId: id,
       btcBalance: "0",
