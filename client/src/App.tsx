@@ -15,12 +15,10 @@ import Settings from "@/pages/Settings";
 import Backtest from "@/pages/Backtest";
 import NotFound from "@/pages/not-found";
 
-function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
+function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
+      {!isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
         <>
@@ -56,9 +54,21 @@ export default function App() {
 function AuthenticatedLayout({ style }: { style: React.CSSProperties }) {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen" data-testid="loading-auth">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show landing page without sidebar for unauthenticated users
-  if (isLoading || !isAuthenticated) {
-    return <Router />;
+  if (!isAuthenticated) {
+    return <Router isAuthenticated={false} />;
   }
 
   // Show full app layout with sidebar for authenticated users
@@ -72,7 +82,7 @@ function AuthenticatedLayout({ style }: { style: React.CSSProperties }) {
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-auto p-6">
-            <Router />
+            <Router isAuthenticated={true} />
           </main>
         </div>
       </div>
