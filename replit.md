@@ -2,7 +2,7 @@
 
 ## Overview
 
-BitTrader Pro is an automated Bitcoin trading application that provides real-time market data, algorithmic trading strategies, and portfolio management. The platform allows users to configure trading bots with various strategies (including Grid Trading, Moving Average Crossover, RSI, MACD, and Bollinger Bands), backtest them against historical data, and execute paper trading with a simulated $100,000 starting balance. The application features real-time Bitcoin price charts on the Dashboard and supports multiple exchange integrations (Binance, Bitget, Coinbase, Kraken, Bybit) for fetching live price data. The system automatically uses exchange APIs when credentials are configured, falling back to CoinGecko when no exchange is active.
+BitTrader Pro is an automated Bitcoin trading application that provides real-time market data, algorithmic trading strategies, and portfolio management. The platform allows users to configure trading bots with various strategies (including Grid Trading, Traditional Grid Trading, Moving Average Crossover, RSI, MACD, and Bollinger Bands), backtest them against historical data, and execute paper trading with a simulated $100,000 starting balance. The application features real-time Bitcoin price charts on the Dashboard and supports multiple exchange integrations (Binance, Bitget, Coinbase, Kraken, Bybit) for fetching live price data. The system automatically uses exchange APIs when credentials are configured, falling back to CoinGecko when no exchange is active.
 
 ## User Preferences
 
@@ -65,16 +65,27 @@ The backend exposes RESTful endpoints organized by feature:
 - **Storage**: Abstraction layer for data persistence with in-memory implementation
 
 **Trading Bot Logic**
-- Supports multiple strategy types: Grid Trading, Moving Average Crossover, RSI, MACD, Bollinger Bands
-- **Grid Trading Strategy**: Automatically buys Bitcoin at every $X price dip from initial price and sells at Y% profit
+- Supports multiple strategy types: Grid Trading, Traditional Grid Trading, Moving Average Crossover, RSI, MACD, Bollinger Bands
+- **Grid Trading Strategy (Dip-Buying)**: Automatically buys Bitcoin at every $X price dip from initial price and sells at Y% profit
   - Configurable grid interval (default: $2000)
   - Configurable profit target (default: 5%)
   - Tracks initial price and maintains open grid orders in strategyState
   - Each buy creates a paired sell order for automated profit-taking
+  - Unidirectional strategy (only buys on dips, never sells below initial price)
+- **Traditional Grid Trading Strategy**: Bidirectional grid trading that profits from price oscillations
+  - Configurable price range (gridLowerBound, gridUpperBound)
+  - Configurable grid interval for spacing between levels
+  - Places buy orders at all levels BELOW current price
+  - Places sell orders at all levels ABOVE current price
+  - Executes orders automatically when price crosses grid levels
+  - Profits from volatility in ranging markets
+  - Best suited for sideways price movements within the defined range
+  - Validation enforced: grid interval must be positive, bounds must be valid
 - Configurable risk parameters: stop loss, take profit, trade size percentage
 - Paper trading simulation with USD/BTC balance tracking
 - Strategy execution runs on 30-second intervals when activated
 - Re-fetches strategy state on each interval to ensure fresh data
+- Backend validation prevents infinite loops from invalid grid intervals
 
 ### Data Storage Solutions
 
