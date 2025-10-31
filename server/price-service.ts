@@ -20,35 +20,50 @@ class PriceService {
   private activeExchange: string | null = null;
 
   async fetchPrice(): Promise<BitcoinPrice> {
-    try {
-      // Check for any active exchange credentials (from any user)
-      const activeCredential = await storage.getAnyActiveCredential();
+    // Check for any active exchange credentials (from any user)
+    const activeCredential = await storage.getAnyActiveCredential();
 
-      if (activeCredential) {
-        // Use exchange API
+    if (activeCredential) {
+      try {
+        // Try to use exchange API first
         console.log(`🔄 Fetching price from ${activeCredential.exchange.toUpperCase()}${activeCredential.exchangeUrl ? ` (Custom URL: ${activeCredential.exchangeUrl})` : ' (Default URL)'}`);
         return await this.fetchFromExchange(activeCredential.exchange, activeCredential.exchangeUrl);
-      } else {
-        // Use CoinGecko as fallback
+      } catch (exchangeError) {
+        // Exchange failed, fall back to CoinGecko
+        console.warn(`⚠️  ${activeCredential.exchange} failed, falling back to CoinGecko:`, exchangeError instanceof Error ? exchangeError.message : exchangeError);
+        try {
+          return await this.fetchFromCoinGecko();
+        } catch (coinGeckoError) {
+          console.error('❌ CoinGecko also failed:', coinGeckoError);
+          // Both failed, return mock data as last resort
+          return this.getMockPrice();
+        }
+      }
+    } else {
+      try {
+        // No active credentials, use CoinGecko
         console.log('🔄 No active exchange credentials found, fetching from CoinGecko');
         return await this.fetchFromCoinGecko();
+      } catch (error) {
+        console.error('❌ CoinGecko failed:', error);
+        // CoinGecko failed, return mock data
+        return this.getMockPrice();
       }
-    } catch (error) {
-      console.error('Error fetching Bitcoin price:', error);
-      
-      // Return mock data if API fails
-      if (!this.currentPrice) {
-        this.currentPrice = {
-          price: 67842.50,
-          change24h: 3.25,
-          high24h: 68420.00,
-          low24h: 66100.00,
-          timestamp: Date.now(),
-        };
-      }
-      
-      return this.currentPrice;
     }
+  }
+
+  private getMockPrice(): BitcoinPrice {
+    console.warn('⚠️  Using mock price data as all APIs failed');
+    if (!this.currentPrice) {
+      this.currentPrice = {
+        price: 67842.50,
+        change24h: 3.25,
+        high24h: 68420.00,
+        low24h: 66100.00,
+        timestamp: Date.now(),
+      };
+    }
+    return this.currentPrice;
   }
 
   private async fetchFromCoinGecko(): Promise<BitcoinPrice> {
