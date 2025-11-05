@@ -8,8 +8,14 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
+// Detect if running locally (not on Replit)
+const isLocalDevelopment = !process.env.REPL_ID && !process.env.REPLIT_DEPLOYMENT;
+
 const getOidcConfig = memoize(
   async () => {
+    if (isLocalDevelopment) {
+      throw new Error("Running in local development mode - OIDC disabled");
+    }
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
       process.env.REPL_ID!
@@ -67,6 +73,51 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Skip OIDC setup in local development mode
+  if (isLocalDevelopment) {
+    console.log("🔧 Running in LOCAL DEVELOPMENT mode - Auth disabled");
+    console.log("📝 Using mock user session for testing");
+    
+    // Create a default local user in the database
+    try {
+      await storage.upsertUser({
+        id: "local-dev-user",
+        email: "dev@localhost.com",
+        firstName: "Local",
+        lastName: "Developer",
+        profileImageUrl: null,
+      });
+      console.log("✅ Mock user created: dev@localhost.com");
+    } catch (error) {
+      console.error("❌ Error creating mock user:", error);
+    }
+    
+    // Mock login endpoint for local development
+    app.get("/api/login", (req, res) => {
+      // Auto-login with mock user
+      (req as any).session.passport = {
+        user: {
+          claims: {
+            sub: "local-dev-user",
+            email: "dev@localhost.com",
+            first_name: "Local",
+            last_name: "Developer",
+          },
+          expires_at: Math.floor(Date.now() / 1000) + 86400, // 24 hours
+        }
+      };
+      res.redirect("/");
+    });
+    
+    app.get("/api/logout", (req, res) => {
+      req.session.destroy(() => {
+        res.redirect("/");
+      });
+    });
+    
+    return; // Skip the rest of auth setup
+  }
 
   const config = await getOidcConfig();
 
@@ -133,6 +184,28 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // In local development mode, auto-authenticate with mock user
+  if (isLocalDevelopment) {
+    // Check if session has user, if not, create one
+    if (!(req as any).session.passport) {
+      (req as any).session.passport = {
+        user: {
+          claims: {
+            sub: "local-dev-user",
+            email: "dev@localhost.com",
+            first_name: "Local",
+            last_name: "Developer",
+          },
+          expires_at: Math.floor(Date.now() / 1000) + 86400, // 24 hours
+        }
+      };
+    }
+    
+    // Mock req.user for local development
+    (req as any).user = (req as any).session.passport.user;
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
