@@ -1,0 +1,133 @@
+root@DESKTOP-CEFBLLD:~/BitTrade-Pro# 🔧 Using local PostgreSQL driver (pg)
+🔧 Running in LOCAL DEVELOPMENT mode - Auth disabled
+📝 Using mock user session for testing
+✅ Mock user created: dev@localhost.com
+🔄 No active exchange credentials found, fetching from CoinGecko
+📡 Calling CoinGecko API: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_high_low=true
+12:32:37 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+12:32:47 PM [express] GET /api/auth/user 200 in 92ms :: {"id":"local-dev-user","email":"dev@localhost…
+Error: Failed to deserialize user out of session
+    at pass (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:359:19)
+    at Authenticator.deserializeUser (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:377:5)
+    at SessionStrategy.authenticate (/root/BitTrade-Pro/node_modules/passport/lib/strategies/session.js:112:10)
+    at attempt (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:378:16)
+    at authenticate (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:379:7)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at initialize (/root/BitTrade-Pro/node_modules/passport/lib/middleware/initialize.js:98:5)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at /root/BitTrade-Pro/node_modules/express-session/index.js:514:7
+    at /root/BitTrade-Pro/node_modules/connect-pg-simple/index.js:370:18
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Error: Failed to deserialize user out of session
+    at pass (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:359:19)
+    at Authenticator.deserializeUser (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:377:5)
+    at SessionStrategy.authenticate (/root/BitTrade-Pro/node_modules/passport/lib/strategies/session.js:112:10)
+    at attempt (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:378:16)
+    at authenticate (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:379:7)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at initialize (/root/BitTrade-Pro/node_modules/passport/lib/middleware/initialize.js:98:5)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at /root/BitTrade-Pro/node_modules/express-session/index.js:514:7
+    at /root/BitTrade-Pro/node_modules/connect-pg-simple/index.js:370:18
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Error: Failed to deserialize user out of session
+    at pass (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:359:19)
+    at Authenticator.deserializeUser (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:377:5)
+    at SessionStrategy.authenticate (/root/BitTrade-Pro/node_modules/passport/lib/strategies/session.js:112:10)
+    at attempt (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:378:16)
+    at authenticate (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:379:7)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at initialize (/root/BitTrade-Pro/node_modules/passport/lib/middleware/initialize.js:98:5)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at /root/BitTrade-Pro/node_modules/express-session/index.js:514:7
+    at /root/BitTrade-Pro/node_modules/connect-pg-simple/index.js:370:18
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Error: Failed to deserialize user out of session
+    at pass (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:359:19)
+    at Authenticator.deserializeUser (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:377:5)
+    at SessionStrategy.authenticate (/root/BitTrade-Pro/node_modules/passport/lib/strategies/session.js:112:10)
+    at attempt (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:378:16)
+    at authenticate (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:379:7)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at initialize (/root/BitTrade-Pro/node_modules/passport/lib/middleware/initialize.js:98:5)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at /root/BitTrade-Pro/node_modules/express-session/index.js:514:7
+    at /root/BitTrade-Pro/node_modules/connect-pg-simple/index.js:370:18
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Error: Failed to deserialize user out of session
+    at pass (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:359:19)
+    at Authenticator.deserializeUser (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:377:5)
+    at SessionStrategy.authenticate (/root/BitTrade-Pro/node_modules/passport/lib/strategies/session.js:112:10)
+    at attempt (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:378:16)
+    at authenticate (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:379:7)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at initialize (/root/BitTrade-Pro/node_modules/passport/lib/middleware/initialize.js:98:5)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at /root/BitTrade-Pro/node_modules/express-session/index.js:514:7
+    at /root/BitTrade-Pro/node_modules/connect-pg-simple/index.js:370:18
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Error: Failed to deserialize user out of session
+    at pass (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:359:19)
+    at Authenticator.deserializeUser (/root/BitTrade-Pro/node_modules/passport/lib/authenticator.js:377:5)
+    at SessionStrategy.authenticate (/root/BitTrade-Pro/node_modules/passport/lib/strategies/session.js:112:10)
+    at attempt (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:378:16)
+    at authenticate (/root/BitTrade-Pro/node_modules/passport/lib/middleware/authenticate.js:379:7)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at initialize (/root/BitTrade-Pro/node_modules/passport/lib/middleware/initialize.js:98:5)
+    at Layer.handle [as handle_request] (/root/BitTrade-Pro/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:328:13)
+    at /root/BitTrade-Pro/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:346:12)
+    at next (/root/BitTrade-Pro/node_modules/express/lib/router/index.js:280:10)
+    at /root/BitTrade-Pro/node_modules/express-session/index.js:514:7
+    at /root/BitTrade-Pro/node_modules/connect-pg-simple/index.js:370:18
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
