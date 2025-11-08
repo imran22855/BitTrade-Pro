@@ -122,6 +122,10 @@ echo "Step 7: Installing application dependencies..."
 if [ -f "package.json" ]; then
     npm install
     print_status "Dependencies installed"
+    
+    # Install pg driver for local PostgreSQL
+    npm install pg
+    print_status "PostgreSQL driver (pg) installed"
 else
     print_error "package.json not found. Please clone the repository first."
     exit 1
