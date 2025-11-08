@@ -33,14 +33,23 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  
+  // Generate a default secret for local development if not provided
+  const sessionSecret = process.env.SESSION_SECRET || 
+    (isLocalDevelopment ? 'local-dev-secret-change-in-production' : undefined);
+  
+  if (!sessionSecret) {
+    throw new Error("SESSION_SECRET environment variable is required");
+  }
+  
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: sessionSecret,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: !isLocalDevelopment, // Disable secure cookies in local dev
       maxAge: sessionTtl,
     },
   });

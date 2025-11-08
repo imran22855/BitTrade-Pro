@@ -38,7 +38,30 @@ cd ~/BitTrade-Pro
 git pull origin main
 ```
 
-### 3. Install the `pg` Package
+### 3. Create .env File
+
+Create a `.env` file in the project root (if you haven't already):
+
+```bash
+# Create .env file with required variables
+cat > .env <<'EOF'
+# Database Connection (update with your actual credentials)
+DATABASE_URL=postgresql://bittrader_user:your_password@localhost:5432/bittrader_pro
+
+# Session Secret (auto-generated random string)
+SESSION_SECRET=local-dev-secret-change-in-production
+
+# Server Configuration
+NODE_ENV=development
+PORT=5000
+EOF
+```
+
+**Important:** Replace `your_password` with your actual PostgreSQL password!
+
+Or if you used the setup script, the `.env` file should already exist with a secure random secret.
+
+### 4. Install the `pg` Package
 
 The app needs the PostgreSQL driver for local development:
 
@@ -48,7 +71,7 @@ npm install pg
 
 This installs the regular PostgreSQL driver that works with your local database.
 
-### 4. Run the App
+### 5. Run the App
 
 ```bash
 npm run dev
